@@ -1,0 +1,14 @@
+build/
+*.olean
+lake-packages/
+.lake/
+
+# macOS
+.DS_Store
+
+# Nix/direnv
+.direnv/
+result
+
+# Claude
+.claude/
