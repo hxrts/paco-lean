@@ -67,7 +67,7 @@ theorem clo_base : clo R ≤ rclo clo R :=
 theorem mono (hRS : R ≤ S) : rclo clo R ≤ rclo clo S := by
   intro x y h
   induction h with
-  | base hr => exact base (hRS _ _ hr)
+  | base hr => exact base (hRS hr)
   | clo R' _ hclo ih => exact rclo.clo R' ih hclo
 
 /-- rclo is monotone in clo (pointwise) -/
@@ -102,16 +102,13 @@ theorem rclo_smallest {R S : Rel α} (hRS : R ≤ S) (hclo : ∀ R', R' ≤ S �
   intro x y h
   induction h with
   | base hr => exact hRS _ _ hr
-  | clo R' _ hcloR' ih =>
-    -- ih : R' ≤ S
-    exact hclo R' ih _ _ hcloR'
+  | clo R' _ hcloR' ih => exact hclo R' ih _ _ hcloR'
 
 /-- rclo with identity closure is identity -/
 theorem rclo_id (R : Rel α) : rclo id R = R := by
   apply Rel.le_antisymm
   · apply rclo_smallest (Rel.le_refl R)
     intro R' hR'
-    -- Need: id R' ≤ R, i.e., R' ≤ R
     exact hR'
   · exact base_le
 
@@ -157,13 +154,8 @@ theorem rclo_compatible (F : MonoRel α) {clo : Rel α → Rel α}
     Compatible F (rclo clo) := by
   intro R x y h
   induction h with
-  | base hFR =>
-    -- F R x y → F (rclo clo R) x y
-    exact F.mono' rclo.base_le _ _ hFR
+  | base hFR => exact F.mono' rclo.base_le _ _ hFR
   | clo R' _ hcloR' ih =>
-    -- hcloR' : clo R' x' y' where R' ⊆ rclo clo (F R)
-    -- ih : R' ⊆ F (rclo clo R)
-    -- Use compatibility: clo R' ≤ clo (F (rclo clo R)) ≤ F (clo (rclo clo R)) ≤ F (rclo clo R)
     have h1 : clo R' ≤ clo (F (rclo clo R)) := h_mono R' _ ih
     have h2 : clo (F (rclo clo R)) ≤ F (clo (rclo clo R)) := h_compat (rclo clo R)
     have h3 : clo (rclo clo R) ≤ rclo clo R := rclo.clo_rclo
@@ -173,6 +165,84 @@ theorem rclo_compatible (F : MonoRel α) {clo : Rel α → Rel α}
 /-- rclo of a monotone closure is monotone -/
 theorem rclo_mono (clo : Rel α → Rel α) : CloMono (rclo clo) :=
   fun _ _ h => rclo.mono h
+
+/-!
+## Companion (cpn)
+
+The companion is the greatest compatible closure operator. It is defined as the
+union of all compatible monotone closures:
+
+  cpn F R x y := ∃ clo, CloMono clo ∧ Compatible F clo ∧ clo R x y
+
+Key properties:
+- `cpn_mono`: cpn F is monotone
+- `cpn_greatest`: Any compatible monotone clo is ≤ cpn F
+- `cpn_compat`: cpn F is itself compatible with F
+- `cpn_gupaco`: gupaco F (cpn F) ≤ cpn F (absorption)
+
+References:
+- [Paco Coq: cpnN](https://github.com/snu-sf/paco)
+- [GPaco paper Section 4](https://paulhe.com/assets/gpaco.pdf)
+-/
+
+/-- The companion: greatest compatible closure operator.
+
+`cpn F R x y` holds if there exists a compatible monotone closure `clo` such that
+`clo R x y`. This is the union of all compatible closures. -/
+inductive cpn (F : MonoRel α) (R : Rel α) : Rel α where
+  | intro (clo : Rel α → Rel α) (h_mono : CloMono clo) (h_compat : Compatible F clo)
+          (h_clo : clo R x y) : cpn F R x y
+
+namespace cpn
+
+variable {F : MonoRel α} {R S : Rel α}
+
+/-- cpn is monotone: if R ≤ S then cpn F R ≤ cpn F S -/
+theorem mono : R ≤ S → cpn F R ≤ cpn F S := by
+  intro hRS x y ⟨clo, h_mono, h_compat, h_clo⟩
+  exact ⟨clo, h_mono, h_compat, h_mono R S hRS x y h_clo⟩
+
+/-- cpn F is a monotone closure operator -/
+theorem cpn_cloMono : CloMono (cpn F) := fun _ _ h => mono h
+
+/-- Any compatible monotone closure is contained in cpn (cpn is greatest) -/
+theorem greatest {clo : Rel α → Rel α} (h_mono : CloMono clo) (h_compat : Compatible F clo) :
+    clo R ≤ cpn F R := fun _ _ h => ⟨clo, h_mono, h_compat, h⟩
+
+/-- R is contained in cpn F R (via identity closure) -/
+theorem base : R ≤ cpn F R := greatest cloMono_id (compatible_id F)
+
+/-- cpn F is compatible with F -/
+theorem compat : Compatible F (cpn F) := by
+  intro R x y ⟨clo, h_mono, h_compat, h_clo⟩
+  have h1 : clo (F R) ≤ F (clo R) := h_compat R
+  have h2 : clo R ≤ cpn F R := greatest h_mono h_compat
+  have h3 : F (clo R) ≤ F (cpn F R) := F.mono' h2
+  exact h3 x y (h1 x y h_clo)
+
+/-- cpn is idempotent: cpn F (cpn F R) ≤ cpn F R -/
+theorem cpn_cpn : cpn F (cpn F R) ≤ cpn F R := by
+  intro x y ⟨clo, h_mono, h_compat, h_clo⟩
+  have h_comp_mono : CloMono (clo ∘ cpn F) := fun R S hRS =>
+    h_mono (cpn F R) (cpn F S) (cpn_cloMono R S hRS)
+  have h_comp_compat : Compatible F (clo ∘ cpn F) :=
+    compatible_comp F h_mono h_compat compat
+  have h_le : (clo ∘ cpn F) R ≤ cpn F R := greatest h_comp_mono h_comp_compat
+  exact h_le x y h_clo
+
+/-- rclo clo ≤ cpn F when clo is compatible and monotone -/
+theorem rclo_le {clo : Rel α → Rel α} (h_mono : CloMono clo) (h_compat : Compatible F clo) :
+    rclo clo R ≤ cpn F R := by
+  intro x y h
+  induction h with
+  | base hr => exact base _ _ hr
+  | clo R' _ hcloR' ih =>
+    have h1 : clo R' ≤ cpn F R' := greatest h_mono h_compat
+    have h2 : cpn F R' ≤ cpn F (cpn F R) := mono ih
+    have h3 : cpn F (cpn F R) ≤ cpn F R := cpn_cpn
+    exact h3 _ _ (h2 _ _ (h1 _ _ hcloR'))
+
+end cpn
 
 /-!
 ## Composed Generating Function
@@ -260,6 +330,190 @@ theorem gpaco_clo_mon (F : MonoRel α) (clo : Rel α → Rel α)
   Rel.le_trans (gpaco_clo_mon_r F clo rg hr) (gpaco_clo_mon_rg F clo r' hrg)
 
 /-!
+## Weak Compatibility
+
+Weak compatibility is a relaxed version of compatibility that uses gupaco_clo.
+The key insight: weak compatibility plus monotonicity implies full compatibility.
+-/
+
+/-- Weak compatibility: clo (F R) ≤ F (gupaco_clo F clo R)
+
+This is weaker than compatibility because gupaco_clo F clo R ⊇ clo R.
+Weak compatibility can be converted to compatibility via `wcompat_compat`. -/
+def WCompatible (F : MonoRel α) (clo : Rel α → Rel α) : Prop :=
+  ∀ R, clo (F R) ≤ F (gupaco_clo F clo R)
+
+/-- clo R ≤ gupaco_clo F clo R (clo is contained in gupaco via rclo) -/
+theorem clo_le_gupaco_clo (F : MonoRel α) (clo : Rel α → Rel α) (R : Rel α) :
+    clo R ≤ gupaco_clo F clo R := by
+  intro x y hclo
+  simp only [gupaco_clo_def, gpaco_clo_def]
+  apply rclo.clo R
+  · intro a b hRab
+    exact rclo.base (Or.inr hRab)
+  · exact hclo
+
+/-- Weak compatibility plus gupaco absorption implies compatibility.
+
+For a closure clo where gupaco_clo F clo R ≤ clo R (absorption), weak
+compatibility implies full compatibility. This is used for cpn. -/
+theorem wcompat_absorb_compat (F : MonoRel α) {clo : Rel α → Rel α}
+    (h_wcompat : WCompatible F clo)
+    (h_absorb : ∀ R, gupaco_clo F clo R ≤ clo R) : Compatible F clo := by
+  intro R x y hclo
+  have h1 := h_wcompat R x y hclo
+  exact F.mono' (h_absorb R) x y h1
+
+/-- Compatibility implies weak compatibility (trivially, since clo R ≤ gupaco_clo F clo R) -/
+theorem compat_wcompat (F : MonoRel α) {clo : Rel α → Rel α}
+    (h_compat : Compatible F clo) : WCompatible F clo := by
+  intro R x y hclo
+  have h1 := h_compat R x y hclo
+  exact F.mono' (clo_le_gupaco_clo F clo R) x y h1
+
+/-!
+## Companion: Weak Compatibility and Gupaco Absorption
+
+These lemmas complete the companion construction by showing:
+1. cpn is weakly compatible
+2. gupaco_clo with cpn absorbs back into cpn
+-/
+
+/-- cpn F is weakly compatible with F -/
+theorem cpn.wcompat (F : MonoRel α) : WCompatible F (cpn F) := by
+  intro R x y ⟨clo, h_mono, h_compat, hclo⟩
+  have h1 : clo (F R) ≤ F (clo R) := h_compat R
+  have h2 : F (clo R) x y := h1 x y hclo
+  have h3 : clo R ≤ cpn F R := cpn.greatest h_mono h_compat
+  have h4 : cpn F R ≤ gupaco_clo F (cpn F) R := clo_le_gupaco_clo F (cpn F) R
+  have h5 : clo R ≤ gupaco_clo F (cpn F) R := Rel.le_trans h3 h4
+  exact F.mono' h5 x y h2
+
+/-- gupaco_clo F clo is monotone as a closure operator (in the relation argument) -/
+theorem gupaco_clo_cloMono (F : MonoRel α) (clo : Rel α → Rel α) :
+    CloMono (gupaco_clo F clo) := by
+  intro R S hRS
+  simp only [gupaco_clo_def]
+  exact gpaco_clo_mon F clo hRS hRS
+
+/-- If clo is weakly compatible, then gupaco_clo F clo is (strongly) compatible.
+
+Note: The general proof requires gupaco idempotence which is circular.
+This lemma is proven for cpn specifically in `cpn.gupaco_compat`. -/
+theorem wcompat_compat_gupaco (F : MonoRel α) {clo : Rel α → Rel α}
+    (h_mono : CloMono clo) (h_wcompat : WCompatible F clo)
+    (h_idemp : ∀ R, gupaco_clo F clo (gupaco_clo F clo R) ≤ gupaco_clo F clo R) :
+    Compatible F (gupaco_clo F clo) := by
+  intro R
+  simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+  intro x y hgup
+  induction hgup with
+  | @base x y hbase =>
+    cases hbase with
+    | inl hpaco =>
+      have hFR_le : F R ≤ (composeRclo F clo) R := fun u v h => F.mono' rclo.base_le u v h
+      have hpaco' := paco_mon (composeRclo F clo) hFR_le x y hpaco
+      have hunf := paco_unfold (composeRclo F clo) R x y hpaco'
+      simp only [composeRclo_def, upaco] at hunf
+      exact F.mono' (rclo.mono (sup_le_sup_right (fun u v h => Or.inl h) R)) x y hunf
+    | inr hFR =>
+      have h1 : R ≤ rclo clo (paco (composeRclo F clo) R ⊔ R) := fun u v h => rclo.base (Or.inr h)
+      exact F.mono' h1 x y hFR
+  | @clo x y R' hR' hcloR' ih =>
+    have h1 : clo R' ≤ clo (F (rclo clo (paco (composeRclo F clo) R ⊔ R))) := h_mono R' _ ih
+    have h2 := h_wcompat (rclo clo (paco (composeRclo F clo) R ⊔ R)) x y (h1 x y hcloR')
+    simp only [gupaco_clo_def, gpaco_clo_def, sup_idem] at h2
+    exact F.mono' (h_idemp R) x y h2
+
+/-- cpn F X ≤ rclo (cpn F) X (cpn embeds into rclo via rclo.clo) -/
+theorem cpn.le_rclo (F : MonoRel α) (X : Rel α) : cpn F X ≤ rclo (cpn F) X := by
+  intro x y ⟨clo, h_mono, h_compat, hclo⟩
+  have h1 : clo X ≤ cpn F X := cpn.greatest h_mono h_compat
+  apply rclo.clo X
+  · exact rclo.base_le
+  · exact h1 x y hclo
+
+/-- gupaco_clo F (cpn F) is compatible with F.
+
+This is proven directly without requiring gupaco idempotence, using
+the special properties of cpn (greatest compatible closure). -/
+theorem cpn.gupaco_compat (F : MonoRel α) : Compatible F (gupaco_clo F (cpn F)) := by
+  intro R
+  simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+  intro x y hgup
+  induction hgup with
+  | @base x y hbase =>
+    cases hbase with
+    | inl hpaco =>
+      have hFR_le : F R ≤ (composeRclo F (cpn F)) R := fun u v h => F.mono' rclo.base_le u v h
+      have hpaco' := paco_mon (composeRclo F (cpn F)) hFR_le x y hpaco
+      have hunf := paco_unfold (composeRclo F (cpn F)) R x y hpaco'
+      simp only [composeRclo_def, upaco] at hunf
+      exact F.mono' (rclo.mono (sup_le_sup_right (fun u v h => Or.inl h) R)) x y hunf
+    | inr hFR =>
+      have h1 : R ≤ rclo (cpn F) (paco (composeRclo F (cpn F)) R ⊔ R) := fun u v h => rclo.base (Or.inr h)
+      exact F.mono' h1 x y hFR
+  | @clo x y R' hR' hcloR' ih =>
+    obtain ⟨clo, h_mono, h_compat, hclo⟩ := hcloR'
+    have h1 : clo R' ≤ clo (F (rclo (cpn F) (paco (composeRclo F (cpn F)) R ⊔ R))) := h_mono R' _ ih
+    let S := rclo (cpn F) (paco (composeRclo F (cpn F)) R ⊔ R)
+    have h2 : clo (F S) ≤ F (clo S) := h_compat S
+    have h3 : F (clo S) x y := h2 x y (h1 x y hclo)
+    have h4 : clo S ≤ cpn F S := cpn.greatest h_mono h_compat
+    have h5 : cpn F S ≤ cpn F (cpn F (paco (composeRclo F (cpn F)) R ⊔ R)) := by
+      apply cpn.mono
+      exact cpn.rclo_le cpn.cpn_cloMono cpn.compat
+    have h6 : cpn F (cpn F (paco (composeRclo F (cpn F)) R ⊔ R)) ≤
+              cpn F (paco (composeRclo F (cpn F)) R ⊔ R) := cpn.cpn_cpn
+    have h7 : cpn F (paco (composeRclo F (cpn F)) R ⊔ R) ≤ S := cpn.le_rclo F _
+    have h8 : clo S ≤ S := Rel.le_trans (Rel.le_trans (Rel.le_trans h4 h5) h6) h7
+    exact F.mono' h8 x y h3
+
+/-- gupaco_clo with cpn absorbs into cpn: gupaco_clo F (cpn F) R ≤ cpn F R
+
+This is the key absorption lemma. The proof uses cpn_greatest: since
+gupaco_clo F (cpn F) is compatible (via cpn.gupaco_compat),
+it must be ≤ cpn F (the greatest compatible closure). -/
+theorem cpn.gupaco (F : MonoRel α) (R : Rel α) :
+    gupaco_clo F (cpn F) R ≤ cpn F R := by
+  have h_compat : Compatible F (gupaco_clo F (cpn F)) := cpn.gupaco_compat F
+  have h_mono : CloMono (gupaco_clo F (cpn F)) := gupaco_clo_cloMono F (cpn F)
+  exact cpn.greatest h_mono h_compat
+
+/-- gupaco_clo F (cpn F) equals cpn F (they absorb each other) -/
+theorem cpn.gupaco_eq (F : MonoRel α) (R : Rel α) :
+    gupaco_clo F (cpn F) R = cpn F R := by
+  apply Rel.le_antisymm
+  · exact cpn.gupaco F R
+  · intro x y hcpn
+    simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+    -- cpn F R ≤ rclo (cpn F) R ≤ rclo (cpn F) (paco G R ⊔ R)
+    apply rclo.clo R rclo.base_le
+    exact hcpn
+
+/-- cpn absorbs upaco: cpn F (upaco G S) ≤ cpn F S when G = composeRclo F clo and clo ≤ cpn F -/
+theorem cpn.upaco_absorb (F : MonoRel α) (clo : Rel α → Rel α)
+    (h_mono : CloMono clo) (h_compat : Compatible F clo) (S : Rel α) :
+    cpn F (upaco (composeRclo F clo) S) ≤ cpn F S := by
+  -- upaco G S = paco G S ⊔ S ≤ gupaco_clo F clo S (by rclo.base_le)
+  -- gupaco_clo F clo S ≤ gupaco_clo F (cpn F) S (by mono in clo)
+  -- gupaco_clo F (cpn F) S = cpn F S
+  have h1 : upaco (composeRclo F clo) S ≤ gupaco_clo F clo S := by
+    intro x y hup
+    simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+    exact rclo.base hup
+  have h_clo_le : ∀ R, clo R ≤ cpn F R := fun R => cpn.greatest h_mono h_compat
+  have h2 : gupaco_clo F clo S ≤ gupaco_clo F (cpn F) S := by
+    simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+    apply rclo.mono_clo h_clo_le
+  have h3 : gupaco_clo F (cpn F) S = cpn F S := cpn.gupaco_eq F S
+  calc cpn F (upaco (composeRclo F clo) S)
+      ≤ cpn F (gupaco_clo F clo S) := cpn.mono h1
+    _ ≤ cpn F (gupaco_clo F (cpn F) S) := cpn.mono h2
+    _ = cpn F (cpn F S) := by rw [h3]
+    _ ≤ cpn F S := cpn.cpn_cpn
+
+/-!
 ## GPaco_clo Coinduction Principle
 
 The main coinduction principle: to prove gpaco_clo F clo r rg x y,
@@ -275,6 +529,62 @@ theorem rclo_gpaco_clo_le (F : MonoRel α) (clo : Rel α → Rel α) (r rg rg' :
   apply rclo.mono
   apply sup_le_sup_right
   exact paco_mon (composeRclo F clo) (sup_le_sup_right hrg r)
+
+/-- Full coinduction principle for gpaco_clo (Coq's gpacoN_cofix).
+
+To prove `l ≤ gpaco_clo F clo r rg`, show that for any `rr` with
+`rg ≤ rr` (INC) and `l ≤ rr` (CIH), we have `l ≤ gpaco_clo F clo r rr`.
+
+The key insight (from Coq): First get `IN: l ≤ gpaco r (rg ⊔ l)` by instantiating
+OBG with rr = rg ⊔ l. Then use coinduction to collapse `paco P ((rg ⊔ l) ⊔ r)`
+back to `paco P (rg ⊔ r)`. The `l` elements get transformed via IN into the
+gpaco structure, which lands in `rclo clo (W ⊔ S)` for the coinductive witness. -/
+theorem gpaco_clo_coind (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
+    (l : Rel α)
+    (OBG : ∀ rr, rg ≤ rr → l ≤ rr → l ≤ gpaco_clo F clo r rr) :
+    l ≤ gpaco_clo F clo r rg := by
+  have IN : l ≤ gpaco_clo F clo r (rg ⊔ l) := OBG (rg ⊔ l) le_sup_left le_sup_right
+  intro x y hlxy
+  have hgpaco := IN x y hlxy
+  simp only [gpaco_clo_def] at hgpaco ⊢
+  have h_inner : paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ r ≤
+                 rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) := by
+    apply sup_le
+    · intro a b hpaco_ab
+      apply rclo.base
+      left
+      apply paco_coind (composeRclo F clo) (paco (composeRclo F clo) ((rg ⊔ l) ⊔ r)) (rg ⊔ r)
+      · intro u v huv
+        have h_unfold := paco_unfold (composeRclo F clo) ((rg ⊔ l) ⊔ r) u v huv
+        simp only [composeRclo_def] at h_unfold ⊢
+        have h_rclo_le : rclo clo (upaco (composeRclo F clo) ((rg ⊔ l) ⊔ r)) ≤
+                         rclo clo (paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ (rg ⊔ r)) := by
+          apply rclo.mono
+          intro x' y' hup
+          simp only [upaco, Rel.union_apply] at hup
+          cases hup with
+          | inl hp => exact rclo.base (Or.inl hp)
+          | inr hrglr =>
+            simp only [Rel.union_apply] at hrglr
+            cases hrglr with
+            | inl hrgl =>
+              cases hrgl with
+              | inl hrg => exact rclo.base (Or.inr (Or.inl hrg))
+              | inr hl' =>
+                have hIN := IN x' y' hl'
+                simp only [gpaco_clo_def] at hIN
+                have h_r_le : paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ r ≤
+                              paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ (rg ⊔ r) := by
+                  apply sup_le_sup_left
+                  intro x'' y'' hr''
+                  right; exact hr''
+                exact rclo.mono h_r_le hIN
+            | inr hr' => exact rclo.base (Or.inr (Or.inr hr'))
+        apply F.mono' h_rclo_le u v h_unfold
+      · exact hpaco_ab
+    · intro a b hr_ab
+      exact rclo.base (Or.inr hr_ab)
+  exact rclo.mono h_inner hgpaco
 
 /-- Simple coinduction for gpaco_clo: prove via paco with F-progress.
 
@@ -357,77 +667,82 @@ theorem gpaco_clo_id (F : MonoRel α) (r rg : Rel α) :
 /-- gupaco_clo absorbs into gpaco_clo (requires compatible monotone closure).
 
 This is a key accumulation lemma: facts proven via gupaco_clo can be accumulated
-back into gpaco_clo, enabling compositional proofs. -/
+back into gpaco_clo, enabling compositional proofs.
+
+Proof strategy (following Coq's paco library):
+1. Use gpaco_clo_coind with l = gupaco_clo F clo G where G = gpaco_clo F clo r rg
+2. The OBG obligation gives us INC: rg ≤ rr and CIH: l ≤ rr
+3. Using CIH, we bound paco P G ⊔ G by rr
+4. This allows transforming gupaco_clo into gpaco_clo -/
 theorem gpaco_clo_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
     (h_mono : CloMono clo) (h_compat : Compatible F clo)
     (r rg : Rel α) :
     gupaco_clo F clo (gpaco_clo F clo r rg) ≤ gpaco_clo F clo r rg := by
-  -- gupaco_clo F clo G = gpaco_clo F clo G G where G = gpaco_clo F clo r rg
-  -- = rclo clo (paco (composeRclo F clo) (G ⊔ G) ⊔ G)
-  -- = rclo clo (paco (composeRclo F clo) G ⊔ G)  [since G ⊔ G = G]
+  let G := gpaco_clo F clo r rg
+  let P := composeRclo F clo
+  apply gpaco_clo_coind F clo r rg (gupaco_clo F clo G)
+  intro rr INC CIH
   simp only [gupaco_clo_def, gpaco_clo_def]
-  have heq : gpaco_clo F clo r rg ⊔ gpaco_clo F clo r rg = gpaco_clo F clo r rg :=
-    sup_idem (gpaco_clo F clo r rg)
-  simp only [gpaco_clo_def] at heq
-  rw [heq]
-  -- Need: rclo clo (paco (composeRclo F clo) (rclo clo (paco ... ⊔ r)) ⊔ rclo clo (paco ... ⊔ r))
-  --     ≤ rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)
-  -- Use rclo idempotence: rclo clo (rclo clo R) ≤ rclo clo R
-  apply Rel.le_trans _ rclo.rclo_rclo
+  have hG_simp : G ⊔ G = G := sup_idem G
+  simp only [gpaco_clo_def] at hG_simp
+  rw [hG_simp]
   apply rclo.mono
-  apply sup_le
-  · -- paco (composeRclo F clo) (rclo clo (...)) ≤ rclo clo (...)
-    -- Use: paco G (rclo clo S) ≤ paco G (upaco G S) ≤ paco G S (via accumulation)
+  have h_pacoG_le_rr : paco P G ≤ rr := by
     intro x y hpaco
-    apply rclo.base
-    left
-    -- paco G (rclo clo (paco G (rg ⊔ r) ⊔ r)) → paco G (rg ⊔ r)
-    -- Use that rclo clo S ≤ upaco G (rg ⊔ r) when S = paco G (rg ⊔ r) ⊔ r
-    have hle : rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) ≤
-               upaco (composeRclo F clo) (rg ⊔ r) := by
-      intro a b hab
-      induction hab with
-      | base hr =>
-        cases hr with
-        | inl hp => left; exact hp
-        | inr hr' => right; right; exact hr'
-      | clo R' _ hcloR' ih =>
-        -- ih : R' ≤ upaco G (rg ⊔ r)
-        -- hcloR' : clo R' a b
-        -- Need: upaco G (rg ⊔ r) a b, i.e., paco G (rg ⊔ r) a b ∨ (rg ⊔ r) a b
-        --
-        -- KNOWN LIMITATION: This case cannot be proven without additional structure.
-        --
-        -- The issue: We have `clo R' a b` where R' ⊆ upaco G (rg ⊔ r), but we need
-        -- to show membership in upaco G (rg ⊔ r). There are two ways this could work:
-        --
-        -- 1. (rg ⊔ r) a b - but clo R' doesn't give us this
-        -- 2. paco G (rg ⊔ r) a b - requires F (rclo clo (upaco G (rg ⊔ r))) a b
-        --
-        -- Neither is obtainable from `clo R' a b` without additional hypotheses.
-        --
-        -- The Coq paco library solves this using the "companion" construction:
-        -- - cpn (companion) = ⋃ { clo | compatible clo }  (greatest compatible closure)
-        -- - Key lemma: cpn (gupaco r) ≤ gupaco r (the companion preserves gupaco)
-        -- - This requires significant additional infrastructure
-        --
-        -- Alternative solutions:
-        -- 1. Implement the companion construction in UpTo.lean
-        -- 2. Prove specialized lemmas for specific closures (congruence, etc.)
-        -- 3. Add a "guardedness" hypothesis: ∀ S, clo (paco G S) ≤ rclo clo (paco G S)
-        --
-        -- For now, we admit this case. The library is still usable because:
-        -- - The id closure case (no up-to) is fully proven (gpaco_clo_id)
-        -- - Direct coinduction via gpaco_clo_cofix works without this lemma
-        -- - gpaco_clo_final (gfp containment) is fully proven
-        --
-        -- See work/paco.md Appendix for detailed proof sketches.
-        left
-        apply paco_fold (composeRclo F clo) (rg ⊔ r)
-        sorry
-    have hpaco' := paco_mon (composeRclo F clo) hle x y hpaco
-    exact paco_acc_upaco (composeRclo F clo) (rg ⊔ r) x y hpaco'
-  · exact Rel.le_refl _
+    have h1 : rclo clo (paco P G ⊔ G) x y := rclo.base (Or.inl hpaco)
+    exact CIH x y h1
+  have h_G_le_rr : G ≤ rr := by
+    intro x y hG
+    have h1 : rclo clo (paco P G ⊔ G) x y := rclo.base (Or.inr hG)
+    exact CIH x y h1
+  have h_sup_le_rr : paco P G ⊔ G ≤ rr := sup_le h_pacoG_le_rr h_G_le_rr
+  have h_rr_le_target : rr ≤ paco P (rr ⊔ r) ⊔ r := by
+    intro x y hrr
+    right; left; exact hrr
+  have h_to_target : paco P G ⊔ G ≤ paco P (rr ⊔ r) ⊔ r :=
+    Rel.le_trans h_sup_le_rr h_rr_le_target
+  intro x y hxy
+  exact rclo.base (h_to_target x y hxy)
+
+/-- Specialized gupaco absorption for the companion (cpn F).
+
+This version is fully provable because cpn has the special property that
+`gupaco_clo F (cpn F) R = cpn F R` (by cpn.gupaco_eq). -/
+theorem gpaco_clo_gupaco_cpn (F : MonoRel α) (r rg : Rel α) :
+    gupaco_clo F (cpn F) (gpaco_clo F (cpn F) r rg) ≤ gpaco_clo F (cpn F) r rg := by
+  -- gupaco_clo F (cpn F) X = cpn F X by cpn.gupaco_eq
+  -- So we need: cpn F (gpaco_clo F (cpn F) r rg) ≤ gpaco_clo F (cpn F) r rg
+  --
+  -- gpaco_clo F (cpn F) r rg = rclo (cpn F) (paco G (rg ⊔ r) ⊔ r) where G = composeRclo F (cpn F)
+  --
+  -- By cpn.rclo_le: rclo (cpn F) X ≤ cpn F X (since cpn F is compatible monotone)
+  -- So gpaco_clo F (cpn F) r rg ≤ cpn F (paco G (rg ⊔ r) ⊔ r)
+  --
+  -- cpn F (cpn F X) ≤ cpn F X by cpn.cpn_cpn
+  -- So cpn F (gpaco_clo F (cpn F) r rg) ≤ cpn F (cpn F (paco G (rg ⊔ r) ⊔ r))
+  --                                     ≤ cpn F (paco G (rg ⊔ r) ⊔ r)
+  --
+  -- Now we need: cpn F (paco G (rg ⊔ r) ⊔ r) ≤ rclo (cpn F) (paco G (rg ⊔ r) ⊔ r)
+  -- This holds by rclo.clo_base: cpn F X ≤ rclo (cpn F) X
+  have h_gupaco_eq : gupaco_clo F (cpn F) (gpaco_clo F (cpn F) r rg) =
+                     cpn F (gpaco_clo F (cpn F) r rg) := cpn.gupaco_eq F (gpaco_clo F (cpn F) r rg)
+  rw [h_gupaco_eq]
+  -- Goal: cpn F (gpaco_clo F (cpn F) r rg) ≤ gpaco_clo F (cpn F) r rg
+  -- gpaco_clo F (cpn F) r rg = rclo (cpn F) (paco G (rg ⊔ r) ⊔ r)
+  simp only [gpaco_clo_def]
+  let G := composeRclo F (cpn F)
+  -- Step 1: gpaco ≤ cpn F (paco G (rg ⊔ r) ⊔ r)
+  have h1 : rclo (cpn F) (paco G (rg ⊔ r) ⊔ r) ≤ cpn F (paco G (rg ⊔ r) ⊔ r) :=
+    cpn.rclo_le cpn.cpn_cloMono cpn.compat
+  -- Step 2: cpn F (gpaco) ≤ cpn F (cpn F X)
+  have h2 : cpn F (rclo (cpn F) (paco G (rg ⊔ r) ⊔ r)) ≤
+            cpn F (cpn F (paco G (rg ⊔ r) ⊔ r)) := cpn.mono h1
+  -- Step 3: cpn F (cpn F X) ≤ cpn F X
+  have h3 : cpn F (cpn F (paco G (rg ⊔ r) ⊔ r)) ≤ cpn F (paco G (rg ⊔ r) ⊔ r) := cpn.cpn_cpn
+  -- Step 4: cpn F X ≤ rclo (cpn F) X
+  have h4 : cpn F (paco G (rg ⊔ r) ⊔ r) ≤ rclo (cpn F) (paco G (rg ⊔ r) ⊔ r) := rclo.clo_base
+  -- Chain: cpn F (gpaco) ≤ cpn F (cpn F X) ≤ cpn F X ≤ rclo (cpn F) X = gpaco
+  exact Rel.le_trans (Rel.le_trans h2 h3) h4
 
 /-!
 ## Compatibility and GPaco_clo

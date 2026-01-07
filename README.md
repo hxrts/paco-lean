@@ -77,4 +77,4 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 
 ## License
 
-Apache 2.0
+[Apache 2.0](LICENSE)
