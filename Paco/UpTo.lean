@@ -61,7 +61,7 @@ theorem base_le : R ≤ rclo clo R := fun _ _ h => base h
 
 /-- clo R is contained in rclo clo R -/
 theorem clo_base : clo R ≤ rclo clo R :=
-  fun _ _ h => clo R base_le h
+  fun _ _ h => rclo.clo R base_le h
 
 /-- rclo is monotone in R -/
 theorem mono (hRS : R ≤ S) : rclo clo R ≤ rclo clo S := by
@@ -92,7 +92,7 @@ theorem rclo_rclo : rclo clo (rclo clo R) ≤ rclo clo R := by
 
 /-- Union injects into rclo -/
 theorem union_le_rclo : rclo clo R ⊔ rclo clo S ≤ rclo clo (R ⊔ S) := by
-  apply sup_le_sup
+  apply sup_le
   · exact mono le_sup_left
   · exact mono le_sup_right
 
@@ -101,10 +101,10 @@ theorem rclo_smallest {R S : Rel α} (hRS : R ≤ S) (hclo : ∀ R', R' ≤ S �
     rclo clo R ≤ S := by
   intro x y h
   induction h with
-  | base hr => exact hRS x y hr
+  | base hr => exact hRS _ _ hr
   | clo R' _ hcloR' ih =>
     -- ih : R' ≤ S
-    exact hclo R' ih x y hcloR'
+    exact hclo R' ih _ _ hcloR'
 
 /-- rclo with identity closure is identity -/
 theorem rclo_id (R : Rel α) : rclo id R = R := by
@@ -159,16 +159,16 @@ theorem rclo_compatible (F : MonoRel α) {clo : Rel α → Rel α}
   induction h with
   | base hFR =>
     -- F R x y → F (rclo clo R) x y
-    exact F.mono' rclo.base_le x y hFR
-  | clo R' hR' hcloR' ih =>
-    -- hcloR' : clo R' x y where R' ⊆ rclo clo (F R)
+    exact F.mono' rclo.base_le _ _ hFR
+  | clo R' _ hcloR' ih =>
+    -- hcloR' : clo R' x' y' where R' ⊆ rclo clo (F R)
     -- ih : R' ⊆ F (rclo clo R)
     -- Use compatibility: clo R' ≤ clo (F (rclo clo R)) ≤ F (clo (rclo clo R)) ≤ F (rclo clo R)
     have h1 : clo R' ≤ clo (F (rclo clo R)) := h_mono R' _ ih
     have h2 : clo (F (rclo clo R)) ≤ F (clo (rclo clo R)) := h_compat (rclo clo R)
     have h3 : clo (rclo clo R) ≤ rclo clo R := rclo.clo_rclo
     have h4 : F (clo (rclo clo R)) ≤ F (rclo clo R) := F.mono' h3
-    exact h4 x y (h2 x y (h1 x y hcloR'))
+    exact h4 _ _ (h2 _ _ (h1 _ _ hcloR'))
 
 /-- rclo of a monotone closure is monotone -/
 theorem rclo_mono (clo : Rel α → Rel α) : CloMono (rclo clo) :=
@@ -338,8 +338,12 @@ When clo = id, gpaco_clo reduces to something equivalent to gpaco.
 
 /-- With identity closure, composeRclo simplifies to F -/
 theorem composeRclo_id (F : MonoRel α) : composeRclo F id = F := by
-  ext R x y
-  simp only [composeRclo_def, rclo.rclo_id]
+  cases F with
+  | mk f hf =>
+    simp only [composeRclo]
+    congr 1
+    funext R
+    simp only [Function.comp_apply, rclo.rclo_id]
 
 /-- With identity closure, gpaco_clo simplifies to gpaco -/
 theorem gpaco_clo_id (F : MonoRel α) (r rg : Rel α) :
@@ -362,81 +366,68 @@ theorem gpaco_clo_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
   -- = rclo clo (paco (composeRclo F clo) (G ⊔ G) ⊔ G)
   -- = rclo clo (paco (composeRclo F clo) G ⊔ G)  [since G ⊔ G = G]
   simp only [gupaco_clo_def, gpaco_clo_def]
-  have heq : gpaco_clo F clo r rg ⊔ gpaco_clo F clo r rg = gpaco_clo F clo r rg := sup_idem
-  simp only [gpaco_clo_def, heq]
+  have heq : gpaco_clo F clo r rg ⊔ gpaco_clo F clo r rg = gpaco_clo F clo r rg :=
+    sup_idem (gpaco_clo F clo r rg)
+  simp only [gpaco_clo_def] at heq
+  rw [heq]
   -- Need: rclo clo (paco (composeRclo F clo) (rclo clo (paco ... ⊔ r)) ⊔ rclo clo (paco ... ⊔ r))
   --     ≤ rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)
-  -- Use rclo idempotence: rclo clo (rclo clo R) = rclo clo R
-  calc rclo clo (paco (composeRclo F clo) (rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)) ⊔
-                 rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r))
-      ≤ rclo clo (rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)) := by
-        apply rclo.mono
-        apply sup_le
-        · -- paco (composeRclo F clo) (rclo clo (...)) ≤ rclo clo (...)
-          -- Use: paco G (rclo clo S) ≤ paco G (upaco G S) ≤ paco G S (via accumulation)
-          -- But we need to show it's in rclo clo (paco G S ⊔ S)
-          intro x y hpaco
-          apply rclo.base
-          left
-          -- paco G (rclo clo (paco G (rg ⊔ r) ⊔ r)) → paco G (rg ⊔ r)
-          -- Use that rclo clo S ≤ upaco G (rg ⊔ r) when S = paco G (rg ⊔ r) ⊔ r
-          have hle : rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) ≤
-                     upaco (composeRclo F clo) (rg ⊔ r) := by
-            apply rclo.rclo_smallest
-            · intro a b hab
-              cases hab with
-              | inl hp => left; exact hp
-              | inr hr' => right; right; exact hr'
-            · -- clo (upaco G (rg ⊔ r)) ≤ upaco G (rg ⊔ r)
-              -- This requires showing: clo R' a b → upaco G (rg ⊔ r) a b
-              -- where R' ≤ upaco G (rg ⊔ r) and G = composeRclo F clo
-              --
-              -- Key insight: upaco G s = paco G s ⊔ s, so we need:
-              -- clo R' ≤ paco G s ⊔ s
-              --
-              -- For the paco part: paco G s = F (upaco G s) [by paco_eq]
-              -- We have: clo R' ≤ clo (upaco G s) ≤ clo (G (upaco G s)) [since paco ≤ G upaco]
-              --        ≤ G (clo (upaco G s)) [by compatibility of rclo]
-              -- And G (clo (...)) = F (rclo clo (clo (...))) which contains F (...)
-              intro R' hR' a b hcloR'
-              -- hR' : R' ≤ upaco (composeRclo F clo) (rg ⊔ r)
-              -- hcloR' : clo R' a b
-              left
-              apply paco_fold (composeRclo F clo) (rg ⊔ r) a b
-              simp only [composeRclo_def]
-              -- Need: F (rclo clo (upaco (composeRclo F clo) (rg ⊔ r))) a b
-              -- From clo R' a b with R' ≤ upaco
-              -- Use: clo R' ≤ clo (upaco) and rclo_compatible
-              -- upaco G s = paco G s ⊔ s, and paco G s = G (upaco G s)
-              -- So upaco G s ⊆ G (upaco G s) ⊔ s
-              -- clo (upaco G s) ⊆ clo (G (upaco G s) ⊔ s)
-              --                ⊆ clo (G (upaco G s)) ⊔ clo s  [if clo distributes over ⊔]
-              -- This doesn't quite work without additional assumptions
-              -- For now, we leave this as admitted - it requires stronger hypotheses
-              -- like "clo distributes over ⊔" or "s is clo-closed"
-              -- In practice, for well-behaved closures like congruence, this holds
-              have hcloR'_le : clo R' ≤ clo (upaco (composeRclo F clo) (rg ⊔ r)) :=
-                h_mono R' _ hR'
-              -- Apply rclo_compatible for composeRclo
-              have hrclo_compat := rclo_compatible F h_mono h_compat
-              -- clo (G (upaco G s)) ≤ G (clo (upaco G s)) where G = composeRclo F clo
-              -- G = F ∘ rclo clo, so:
-              -- clo (F (rclo clo (upaco G s))) ≤ F (clo (rclo clo (upaco G s)))
-              --                               ≤ F (rclo clo (upaco G s)) [by rclo.clo_rclo]
-              -- But we have clo R' where R' ⊆ upaco, not clo (G (upaco))
-              -- The gap is: upaco ⊆ G (upaco) only for the paco part, not the s part
-              -- This is fundamentally stuck without extra structure
-              -- Use compatibility at the rclo level
-              apply F.mono' rclo.clo_base a b
-              apply h_mono R' (upaco (composeRclo F clo) (rg ⊔ r)) hR' a b
-              apply hcloR'_le a b hcloR'
-          calc paco (composeRclo F clo) (rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)) x y
-              → paco (composeRclo F clo) (upaco (composeRclo F clo) (rg ⊔ r)) x y :=
-                paco_mon (composeRclo F clo) hle x y hpaco
-            _ → paco (composeRclo F clo) (rg ⊔ r) x y :=
-                paco_acc_upaco (composeRclo F clo) (rg ⊔ r) x y
-        · exact Rel.le_refl _
-    _ = rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) := rclo.rclo_rclo
+  -- Use rclo idempotence: rclo clo (rclo clo R) ≤ rclo clo R
+  apply Rel.le_trans _ rclo.rclo_rclo
+  apply rclo.mono
+  apply sup_le
+  · -- paco (composeRclo F clo) (rclo clo (...)) ≤ rclo clo (...)
+    -- Use: paco G (rclo clo S) ≤ paco G (upaco G S) ≤ paco G S (via accumulation)
+    intro x y hpaco
+    apply rclo.base
+    left
+    -- paco G (rclo clo (paco G (rg ⊔ r) ⊔ r)) → paco G (rg ⊔ r)
+    -- Use that rclo clo S ≤ upaco G (rg ⊔ r) when S = paco G (rg ⊔ r) ⊔ r
+    have hle : rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) ≤
+               upaco (composeRclo F clo) (rg ⊔ r) := by
+      intro a b hab
+      induction hab with
+      | base hr =>
+        cases hr with
+        | inl hp => left; exact hp
+        | inr hr' => right; right; exact hr'
+      | clo R' _ hcloR' ih =>
+        -- ih : R' ≤ upaco G (rg ⊔ r)
+        -- hcloR' : clo R' a b
+        -- Need: upaco G (rg ⊔ r) a b, i.e., paco G (rg ⊔ r) a b ∨ (rg ⊔ r) a b
+        --
+        -- KNOWN LIMITATION: This case cannot be proven without additional structure.
+        --
+        -- The issue: We have `clo R' a b` where R' ⊆ upaco G (rg ⊔ r), but we need
+        -- to show membership in upaco G (rg ⊔ r). There are two ways this could work:
+        --
+        -- 1. (rg ⊔ r) a b - but clo R' doesn't give us this
+        -- 2. paco G (rg ⊔ r) a b - requires F (rclo clo (upaco G (rg ⊔ r))) a b
+        --
+        -- Neither is obtainable from `clo R' a b` without additional hypotheses.
+        --
+        -- The Coq paco library solves this using the "companion" construction:
+        -- - cpn (companion) = ⋃ { clo | compatible clo }  (greatest compatible closure)
+        -- - Key lemma: cpn (gupaco r) ≤ gupaco r (the companion preserves gupaco)
+        -- - This requires significant additional infrastructure
+        --
+        -- Alternative solutions:
+        -- 1. Implement the companion construction in UpTo.lean
+        -- 2. Prove specialized lemmas for specific closures (congruence, etc.)
+        -- 3. Add a "guardedness" hypothesis: ∀ S, clo (paco G S) ≤ rclo clo (paco G S)
+        --
+        -- For now, we admit this case. The library is still usable because:
+        -- - The id closure case (no up-to) is fully proven (gpaco_clo_id)
+        -- - Direct coinduction via gpaco_clo_cofix works without this lemma
+        -- - gpaco_clo_final (gfp containment) is fully proven
+        --
+        -- See work/paco.md Appendix for detailed proof sketches.
+        left
+        apply paco_fold (composeRclo F clo) (rg ⊔ r)
+        sorry
+    have hpaco' := paco_mon (composeRclo F clo) hle x y hpaco
+    exact paco_acc_upaco (composeRclo F clo) (rg ⊔ r) x y hpaco'
+  · exact Rel.le_refl _
 
 /-!
 ## Compatibility and GPaco_clo
@@ -446,7 +437,7 @@ When clo is compatible, gpaco_clo proofs can be converted to standard paco proof
 
 /-- gfp F is closed under compatible closure -/
 theorem gfp_closed_clo (F : MonoRel α) (clo : Rel α → Rel α)
-    (h_mono : CloMono clo) (h_compat : Compatible F clo) :
+    (_h_mono : CloMono clo) (h_compat : Compatible F clo) :
     clo F.toOrderHom.gfp ≤ F.toOrderHom.gfp := by
   intro x y hclo
   -- clo (gfp F) x y
@@ -461,7 +452,7 @@ theorem gfp_closed_clo (F : MonoRel α) (clo : Rel α → Rel α)
   -- Actually: clo (gfp F) ⊔ gfp F is a post-fixpoint
   have hpost : clo F.toOrderHom.gfp ⊔ F.toOrderHom.gfp ≤ F (clo F.toOrderHom.gfp ⊔ F.toOrderHom.gfp) := by
     apply sup_le
-    · calc clo F.toOrderHom.gfp = clo (F F.toOrderHom.gfp) := by rw [hgfp_eq]
+    · calc clo F.toOrderHom.gfp = clo (F F.toOrderHom.gfp) := congrArg clo hgfp_eq
         _ ≤ F (clo F.toOrderHom.gfp) := h_compat F.toOrderHom.gfp
         _ ≤ F (clo F.toOrderHom.gfp ⊔ F.toOrderHom.gfp) := F.mono' le_sup_left
     · calc F.toOrderHom.gfp = F F.toOrderHom.gfp := hgfp_eq
@@ -473,10 +464,11 @@ theorem gfp_closed_clo (F : MonoRel α) (clo : Rel α → Rel α)
 theorem gfp_closed_rclo (F : MonoRel α) (clo : Rel α → Rel α)
     (h_mono : CloMono clo) (h_compat : Compatible F clo) :
     rclo clo F.toOrderHom.gfp ≤ F.toOrderHom.gfp := by
-  apply rclo.rclo_smallest (Rel.le_refl _)
-  intro R' hR'
-  calc clo R' ≤ clo F.toOrderHom.gfp := h_mono R' F.toOrderHom.gfp hR'
-    _ ≤ F.toOrderHom.gfp := gfp_closed_clo F clo h_mono h_compat
+  intro x y h
+  induction h with
+  | base hr => exact hr
+  | clo R' _ hcloR' ih =>
+    exact gfp_closed_clo F clo h_mono h_compat _ _ (h_mono R' _ ih _ _ hcloR')
 
 /-- If clo is compatible, gpaco_clo is contained in gfp F -/
 theorem gpaco_clo_final (F : MonoRel α) (clo : Rel α → Rel α)
@@ -485,64 +477,71 @@ theorem gpaco_clo_final (F : MonoRel α) (clo : Rel α → Rel α)
     gpaco_clo F clo r rg ≤ F.toOrderHom.gfp := by
   -- gpaco_clo = rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)
   simp only [gpaco_clo_def]
-  -- Since gfp F is closed under rclo clo, we need:
-  -- paco (composeRclo F clo) (rg ⊔ r) ⊔ r ≤ gfp F
-  apply gfp_closed_rclo F clo h_mono h_compat
-  -- rclo clo (paco ... ⊔ r) ≤ gfp F
-  -- when paco ... ⊔ r ≤ gfp F (by gfp_closed_rclo)
-  apply rclo.mono
-  apply sup_le
-  · -- paco (composeRclo F clo) (rg ⊔ r) ≤ gfp F
-    -- Use paco_final: if parameter ≤ gfp, then paco ≤ gfp
-    -- But composeRclo F clo ≠ F, so we need a different approach
-    -- paco G s ≤ gfp G when s ≤ gfp G
-    -- gfp (F ∘ rclo clo) ≤ gfp F when clo is compatible? Not obviously...
+  -- Show: rclo clo (paco ... ⊔ r) ≤ gfp F
+  -- Strategy: show inner ≤ gfp F, then use rclo clo (gfp F) ≤ gfp F
+  -- Helper: gfp F is a pre-fixed point of composeRclo F clo
+  have hgfp_prefixed : F.toOrderHom.gfp ≤ (composeRclo F clo).toOrderHom F.toOrderHom.gfp := by
+    intro u v huv
+    -- Goal: (composeRclo F clo) (gfp F) u v, i.e., F (rclo clo (gfp F)) u v
+    have hgfp_eq : F.toOrderHom.gfp = F F.toOrderHom.gfp := F.toOrderHom.map_gfp.symm
+    rw [hgfp_eq] at huv
+    exact F.mono' rclo.base_le u v huv
+  -- Helper: gfp F ≤ gfp (composeRclo F clo) since gfp F is a pre-fixed point
+  have hgfp_le_compose : F.toOrderHom.gfp ≤ (composeRclo F clo).toOrderHom.gfp :=
+    OrderHom.le_gfp (composeRclo F clo).toOrderHom hgfp_prefixed
+  -- Helper: gfp (composeRclo F clo) ≤ gfp F when clo is compatible
+  -- Key insight: Use rclo idempotence to show gfp (F ∘ rclo clo) is a post-fixpoint of F
+  have hcompose_le_gfp : (composeRclo F clo).toOrderHom.gfp ≤ F.toOrderHom.gfp := by
+    -- Abbreviation for the composed transformer
+    set G := composeRclo F clo with hG_def
+    set R := G.toOrderHom.gfp with hR_def
+    -- Step 1: R = G R = F (rclo clo R) [fixed point property]
+    have hR_eq : R = G.F R := G.toOrderHom.map_gfp.symm
+    -- Step 2: G.F S = F.F (rclo clo S) by definition
+    have hGF_eq : ∀ S, G.F S = F.F (rclo clo S) := fun S => rfl
+    -- Step 3: rclo idempotence
+    have h_idem : rclo clo (rclo clo R) = rclo clo R :=
+      Rel.le_antisymm rclo.rclo_rclo rclo.base_le
+    -- Step 4: rclo clo R is a post-fixpoint of G
+    have hrclo_post_G : rclo clo R ≤ G.F (rclo clo R) := by
+      -- G.F (rclo clo R) = F (rclo clo (rclo clo R)) = F (rclo clo R) by idempotence
+      rw [hGF_eq, h_idem]
+      -- Goal: rclo clo R ≤ F (rclo clo R)
+      -- R ⊆ rclo clo R, and R = G R = F (rclo clo R)
+      -- So rclo clo R ⊆ rclo clo (F (rclo clo R)) ⊆ F (rclo clo R) by compatibility
+      have h1 : rclo clo R ≤ rclo clo (F.F (rclo clo R)) := by
+        apply rclo.mono
+        rw [← hGF_eq, ← hR_eq]
+      have h2 : rclo clo (F.F (rclo clo R)) ≤ F.F (rclo clo (rclo clo R)) :=
+        rclo_compatible F h_mono h_compat (rclo clo R)
+      calc rclo clo R
+          ≤ rclo clo (F.F (rclo clo R)) := h1
+        _ ≤ F.F (rclo clo (rclo clo R)) := h2
+        _ = F.F (rclo clo R) := by rw [h_idem]
+    -- Step 5: Since R is greatest post-fixpoint of G, rclo clo R ≤ R
+    have hrclo_le_R : rclo clo R ≤ R := OrderHom.le_gfp G.toOrderHom hrclo_post_G
+    -- Step 6: R is a post-fixpoint of F
+    have hR_post_F : R ≤ F.F R := by
+      calc R = G.F R := hR_eq
+        _ = F.F (rclo clo R) := hGF_eq R
+        _ ≤ F.F R := F.mono' hrclo_le_R
+    -- Step 7: Therefore R ≤ gfp F
+    exact OrderHom.le_gfp F.toOrderHom hR_post_F
+  -- Show paco ... ⊔ r ≤ gfp F
+  have hinner : paco (composeRclo F clo) (rg ⊔ r) ⊔ r ≤ F.toOrderHom.gfp := by
+    apply sup_le _ hr
+    -- paco (composeRclo F clo) (rg ⊔ r) ≤ gfp F
     intro x y hpaco
-    -- hpaco : paco (composeRclo F clo) (rg ⊔ r) x y
-    -- Show: F.toOrderHom.gfp x y
-    -- Key: use paco_final for composeRclo, then relate gfp (composeRclo) to gfp F
     have hparam_le : rg ⊔ r ≤ (composeRclo F clo).toOrderHom.gfp := by
       apply sup_le
-      · calc rg ≤ F.toOrderHom.gfp := hrg
-          _ ≤ (composeRclo F clo).toOrderHom.gfp := by
-            -- gfp F ≤ gfp (F ∘ rclo clo) because rclo clo R ⊇ R
-            intro a b hgfp
-            -- Show (composeRclo F clo).toOrderHom.gfp a b
-            -- gfp (F ∘ rclo clo) = F (rclo clo (gfp (F ∘ rclo clo)))
-            -- gfp F = F (gfp F)
-            -- We need gfp F ≤ gfp G where G = F ∘ rclo clo
-            -- This follows from G R ⊇ F R (since rclo clo R ⊇ R)
-            apply OrderHom.le_gfp (composeRclo F clo).toOrderHom
-            · intro u v huv
-              simp only [composeRclo_def]
-              have hgfp_eq : F.toOrderHom.gfp = F F.toOrderHom.gfp := F.toOrderHom.map_gfp.symm
-              rw [hgfp_eq] at huv
-              apply F.mono' rclo.base_le u v huv
-            · exact hgfp
-      · calc r ≤ F.toOrderHom.gfp := hr
-          _ ≤ (composeRclo F clo).toOrderHom.gfp := by
-            intro a b hgfp
-            apply OrderHom.le_gfp (composeRclo F clo).toOrderHom
-            · intro u v huv
-              simp only [composeRclo_def]
-              have hgfp_eq : F.toOrderHom.gfp = F F.toOrderHom.gfp := F.toOrderHom.map_gfp.symm
-              rw [hgfp_eq] at huv
-              apply F.mono' rclo.base_le u v huv
-            · exact hgfp
+      · exact Rel.le_trans hrg hgfp_le_compose
+      · exact Rel.le_trans hr hgfp_le_compose
     have hpaco_le := paco_final (composeRclo F clo) (rg ⊔ r) hparam_le x y hpaco
-    -- hpaco_le : (composeRclo F clo).toOrderHom.gfp x y
-    -- Need to show: F.toOrderHom.gfp x y
-    -- gfp (F ∘ rclo clo) ≤ gfp F when clo is compatible
-    -- gfp (F ∘ rclo clo) = F (rclo clo (gfp (F ∘ rclo clo)))
-    -- If we can show rclo clo (gfp (F ∘ rclo clo)) ≤ gfp F, then gfp (F ∘ rclo clo) ≤ gfp F
-    have hrclo_gfp : (composeRclo F clo).toOrderHom.gfp ≤ F.toOrderHom.gfp := by
-      apply OrderHom.gfp_le
-      simp only [composeRclo_def]
-      calc F (rclo clo F.toOrderHom.gfp) ≤ F F.toOrderHom.gfp :=
-            F.mono' (gfp_closed_rclo F clo h_mono h_compat)
-        _ = F.toOrderHom.gfp := F.toOrderHom.map_gfp
-    exact hrclo_gfp x y hpaco_le
-  · exact hr
+    exact hcompose_le_gfp x y hpaco_le
+  -- Now: rclo clo (inner) ≤ rclo clo (gfp F) ≤ gfp F
+  calc rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)
+      ≤ rclo clo F.toOrderHom.gfp := rclo.mono hinner
+    _ ≤ F.toOrderHom.gfp := gfp_closed_rclo F clo h_mono h_compat
 
 /-!
 ## Common Up-To Closures
@@ -600,7 +599,7 @@ theorem symmClosure_mono : CloMono (symmClosure (α := α)) := by
 theorem transClosure_mono : CloMono (transClosure (α := α)) := by
   intro R S hRS x y h
   induction h with
-  | base hR => exact transClosure.base (hRS x y hR)
+  | base hR => exact transClosure.base (hRS _ _ hR)
   | trans _ _ ih₁ ih₂ => exact transClosure.trans ih₁ ih₂
 
 /-- rtClosure is monotone -/
@@ -608,7 +607,7 @@ theorem rtClosure_mono : CloMono (rtClosure (α := α)) := by
   intro R S hRS x y h
   induction h with
   | refl => exact rtClosure.refl
-  | base hR => exact rtClosure.base (hRS x y hR)
+  | base hR => exact rtClosure.base (hRS _ _ hR)
   | trans _ _ ih₁ ih₂ => exact rtClosure.trans ih₁ ih₂
 
 /-- eqvClosure is monotone -/
@@ -616,7 +615,7 @@ theorem eqvClosure_mono : CloMono (eqvClosure (α := α)) := by
   intro R S hRS x y h
   induction h with
   | refl => exact eqvClosure.refl
-  | base hR => exact eqvClosure.base (hRS x y hR)
+  | base hR => exact eqvClosure.base (hRS _ _ hR)
   | symm _ ih => exact eqvClosure.symm ih
   | trans _ _ ih₁ ih₂ => exact eqvClosure.trans ih₁ ih₂
 
