@@ -28,6 +28,7 @@ This package makes use of Alex C. Keizer's [Lean 4 formalization](https://github
 - **`Paco.GPaco`**: Generalized paco with guarded parameters (`gpaco`, `gupaco`)
 - **`Paco.Tactic`**: Tactics for ergonomic proofs (`pcofix`, `punfold`, `pfold`, etc.)
 - **`Paco.UpTo`**: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
+- **`Paco.UpTo.GPacoClo`**: GPaco with user closures, companion (`cpn`), and coinduction/accumulation lemmas
 
 ## Installation
 
@@ -66,6 +67,8 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 | `paco_acc` | `paco F (paco F r) ≤ paco F r` (accumulation) |
 | `paco_coind` | Main coinduction principle |
 | `paco_bot` | `paco F ⊥ = gfp F` |
+| `gpaco_clo_coind` | Coinduction principle for gpaco with closures |
+| `gpaco_clo_gupaco` | Gupaco absorption into gpaco (accumulation) |
 
 ## References
 
