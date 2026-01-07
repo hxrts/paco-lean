@@ -181,31 +181,61 @@ theorem gupaco_clo_cloMono (F : MonoRel α) (clo : Rel α → Rel α) :
 
 /-- If clo is weakly compatible, then gupaco_clo F clo is (strongly) compatible.
 
-Note: The general proof requires gupaco idempotence which is circular.
-This lemma is proven for cpn specifically in `cpn.gupaco_compat`. -/
+This is the key theorem connecting weak compatibility to strong compatibility.
+The proof uses coinduction to show F R ≤ paco P R, which embeds into gupaco R. -/
 theorem wcompat_compat_gupaco (F : MonoRel α) {clo : Rel α → Rel α}
     (h_mono : CloMono clo) (h_wcompat : WCompatible F clo)
     (h_idemp : ∀ R, gupaco_clo F clo (gupaco_clo F clo R) ≤ gupaco_clo F clo R) :
     Compatible F (gupaco_clo F clo) := by
   intro R
-  simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+  -- Goal: gupaco_clo F clo (F R) ≤ F (gupaco_clo F clo R)
+  -- Note: gupaco_clo F clo X = gpaco_clo F clo X X = rclo clo (paco P (X ⊔ X) ⊔ X)
+  -- where P = composeRclo F clo
+  let P := composeRclo F clo
+  -- Key lemma: F R ≤ paco P (R ⊔ R) using coinduction
+  have h_FR_le_paco : F R ≤ paco P (R ⊔ R) := by
+    -- Use paco_coind' with witness = F R
+    apply paco_coind' P (R ⊔ R) (F R)
+    intro x y hFR
+    -- Goal: P (F R ⊔ (R ⊔ R)) x y = F (rclo clo (F R ⊔ (R ⊔ R))) x y
+    -- Since R ≤ F R ⊔ (R ⊔ R) ≤ rclo clo (...), by F mono we get result
+    have h_R_le : R ≤ rclo clo (F R ⊔ (R ⊔ R)) := fun a b hr =>
+      rclo.base (Or.inr (Or.inl hr))
+    exact F.mono' h_R_le x y hFR
+  -- F R ≤ paco P (R ⊔ R) ≤ rclo clo (paco P (R ⊔ R) ⊔ R) = gupaco R
+  have h_FR_le_gupaco : F R ≤ gupaco_clo F clo R := fun x y hFR =>
+    rclo.base (Or.inl (h_FR_le_paco x y hFR))
+  -- paco P (F R ⊔ F R) ≤ paco P (gupaco R ⊔ gupaco R) ≤ gupaco (gupaco R) ≤ gupaco R
+  have h_paco_FR_le : paco P (F R ⊔ F R) ≤ gupaco_clo F clo R := fun x y hpaco =>
+    let hpaco' := paco_mon P (sup_le_sup h_FR_le_gupaco h_FR_le_gupaco) x y hpaco
+    h_idemp R x y (rclo.base (Or.inl hpaco'))
+  -- Now prove the main result by induction on rclo
+  -- gupaco F clo (F R) = rclo clo (paco P (F R ⊔ F R) ⊔ F R)
   intro x y hgup
   induction hgup with
   | @base x y hbase =>
     cases hbase with
     | inl hpaco =>
-      have hFR_le : F R ≤ (composeRclo F clo) R := fun u v h => F.mono' rclo.base_le u v h
-      have hpaco' := paco_mon (composeRclo F clo) hFR_le x y hpaco
-      have hunf := paco_unfold (composeRclo F clo) R x y hpaco'
-      simp only [composeRclo_def, upaco] at hunf
-      exact F.mono' (rclo.mono (sup_le_sup_right (fun u v h => Or.inl h) R)) x y hunf
+      -- hpaco : paco P (F R ⊔ F R) x y
+      -- Goal: F (gupaco_clo F clo R) x y
+      have hunf := paco_unfold P (F R ⊔ F R) x y hpaco
+      -- hunf : P (upaco P (F R ⊔ F R)) x y = F (rclo clo (paco P (F R ⊔ F R) ⊔ (F R ⊔ F R))) x y
+      -- Show: rclo clo (paco P (F R ⊔ F R) ⊔ (F R ⊔ F R)) ≤ gupaco R
+      have h_inner_le : paco P (F R ⊔ F R) ⊔ (F R ⊔ F R) ≤ gupaco_clo F clo R :=
+        sup_le h_paco_FR_le (sup_le h_FR_le_gupaco h_FR_le_gupaco)
+      have h_rclo_le : rclo clo (paco P (F R ⊔ F R) ⊔ (F R ⊔ F R)) ≤ gupaco_clo F clo R :=
+        fun a b hrclo => rclo.rclo_rclo a b (rclo.mono h_inner_le a b hrclo)
+      exact F.mono' h_rclo_le x y hunf
     | inr hFR =>
-      have h1 : R ≤ rclo clo (paco (composeRclo F clo) R ⊔ R) := fun u v h => rclo.base (Or.inr h)
-      exact F.mono' h1 x y hFR
+      -- hFR : F R x y
+      -- Goal: F (gupaco_clo F clo R) x y
+      exact F.mono' (r_le_gpaco_clo F clo R R) x y hFR
   | @clo x y R' hR' hcloR' ih =>
-    have h1 : clo R' ≤ clo (F (rclo clo (paco (composeRclo F clo) R ⊔ R))) := h_mono R' _ ih
-    have h2 := h_wcompat (rclo clo (paco (composeRclo F clo) R ⊔ R)) x y (h1 x y hcloR')
-    simp only [gupaco_clo_def, gpaco_clo_def, sup_idem] at h2
+    -- hcloR' : clo R' x y with R' ≤ F (gupaco_clo F clo R)
+    -- ih : R' ≤ F (gupaco_clo F clo R)
+    have h1 : clo R' ≤ clo (F (gupaco_clo F clo R)) := h_mono R' _ ih
+    have h2 := h_wcompat (gupaco_clo F clo R) x y (h1 x y hcloR')
+    -- h2 : F (gupaco_clo F clo (gupaco_clo F clo R)) x y
     exact F.mono' (h_idemp R) x y h2
 
 /-- cpn F X ≤ rclo (cpn F) X (cpn embeds into rclo via rclo.clo) -/
@@ -218,39 +248,69 @@ theorem cpn.le_rclo (F : MonoRel α) (X : Rel α) : cpn F X ≤ rclo (cpn F) X :
 
 /-- gupaco_clo F (cpn F) is compatible with F.
 
-This is proven directly without requiring gupaco idempotence, using
-the special properties of cpn (greatest compatible closure). -/
+This follows from weak compatibility plus gupaco idempotence for cpn.
+The idempotence for cpn can be proven directly using cpn.rclo_le and cpn.cpn_cpn. -/
 theorem cpn.gupaco_compat (F : MonoRel α) : Compatible F (gupaco_clo F (cpn F)) := by
-  intro R
-  simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
-  intro x y hgup
-  induction hgup with
-  | @base x y hbase =>
-    cases hbase with
-    | inl hpaco =>
-      have hFR_le : F R ≤ (composeRclo F (cpn F)) R := fun u v h => F.mono' rclo.base_le u v h
-      have hpaco' := paco_mon (composeRclo F (cpn F)) hFR_le x y hpaco
-      have hunf := paco_unfold (composeRclo F (cpn F)) R x y hpaco'
-      simp only [composeRclo_def, upaco] at hunf
-      exact F.mono' (rclo.mono (sup_le_sup_right (fun u v h => Or.inl h) R)) x y hunf
-    | inr hFR =>
-      have h1 : R ≤ rclo (cpn F) (paco (composeRclo F (cpn F)) R ⊔ R) := fun u v h => rclo.base (Or.inr h)
-      exact F.mono' h1 x y hFR
-  | @clo x y R' hR' hcloR' ih =>
-    obtain ⟨clo, h_mono, h_compat, hclo⟩ := hcloR'
-    have h1 : clo R' ≤ clo (F (rclo (cpn F) (paco (composeRclo F (cpn F)) R ⊔ R))) := h_mono R' _ ih
-    let S := rclo (cpn F) (paco (composeRclo F (cpn F)) R ⊔ R)
-    have h2 : clo (F S) ≤ F (clo S) := h_compat S
-    have h3 : F (clo S) x y := h2 x y (h1 x y hclo)
-    have h4 : clo S ≤ cpn F S := cpn.greatest h_mono h_compat
-    have h5 : cpn F S ≤ cpn F (cpn F (paco (composeRclo F (cpn F)) R ⊔ R)) := by
-      apply cpn.mono
-      exact cpn.rclo_le cpn.cpn_cloMono cpn.compat
-    have h6 : cpn F (cpn F (paco (composeRclo F (cpn F)) R ⊔ R)) ≤
-              cpn F (paco (composeRclo F (cpn F)) R ⊔ R) := cpn.cpn_cpn
-    have h7 : cpn F (paco (composeRclo F (cpn F)) R ⊔ R) ≤ S := cpn.le_rclo F _
-    have h8 : clo S ≤ S := Rel.le_trans (Rel.le_trans (Rel.le_trans h4 h5) h6) h7
-    exact F.mono' h8 x y h3
+  -- First prove idempotence: gupaco (gupaco R) ≤ gupaco R for cpn
+  have h_idemp : ∀ R, gupaco_clo F (cpn F) (gupaco_clo F (cpn F) R) ≤ gupaco_clo F (cpn F) R := by
+    intro R
+    -- gupaco X = rclo (cpn F) (paco P (X ⊔ X) ⊔ X) where P = composeRclo F (cpn F)
+    -- We need to show this collapses when X = gupaco R
+    -- Key: rclo (cpn F) X ≤ cpn F X for any X (via cpn.rclo_le)
+    -- And: cpn F (cpn F Y) ≤ cpn F Y (via cpn.cpn_cpn)
+    intro x y hgup
+    -- hgup : gupaco (gupaco R) x y
+    -- = rclo (cpn F) (paco P (gupaco R ⊔ gupaco R) ⊔ gupaco R) x y
+    -- First show gupaco R ≤ cpn F R
+    have h_gup_le_cpn : ∀ S, gupaco_clo F (cpn F) S ≤ cpn F S := by
+      intro S
+      -- gupaco S = rclo (cpn F) (paco P (S ⊔ S) ⊔ S)
+      -- rclo (cpn F) X ≤ cpn F X by cpn.rclo_le
+      -- So gupaco S ≤ cpn F (paco P (S ⊔ S) ⊔ S)
+      -- And cpn F X ≤ cpn F (cpn F Y) if X ≤ cpn F Y
+      -- Since paco P S ⊔ S ≤ cpn F S (need to show paco P S ≤ cpn F S...)
+      -- Actually simpler: show rclo (cpn F) X ≤ cpn F X for the whole thing
+      intro a b hg
+      have h1 : rclo (cpn F) (paco (composeRclo F (cpn F)) (S ⊔ S) ⊔ S) ≤
+                cpn F (paco (composeRclo F (cpn F)) (S ⊔ S) ⊔ S) :=
+        cpn.rclo_le cpn.cpn_cloMono cpn.compat
+      have h2 : paco (composeRclo F (cpn F)) (S ⊔ S) ⊔ S ≤ cpn F S := by
+        apply sup_le
+        · -- paco P (S ⊔ S) ≤ cpn F S
+          intro u v hp
+          -- Use paco_mon to convert to paco P (cpn F S)
+          have hp' := paco_mon (composeRclo F (cpn F))
+            (sup_le_sup (cpn.base (α := α) (F := F)) (cpn.base (α := α) (F := F))) u v hp
+          -- paco P (cpn F S ⊔ cpn F S) = paco P (cpn F S) (by sup_idem... but not defeq)
+          -- Actually sup cpn cpn is just cpn via idem...
+          -- Simpler: show paco P X ≤ cpn F X for X = cpn F S
+          -- paco P (cpn S) ≤ cpn F (cpn S) because:
+          -- - paco coind: if cpn S ≤ P (cpn S ⊔ R) = F (rclo cpn (cpn S ⊔ R)) then cpn S ≤ paco P R
+          -- This is getting circular. Let me try a simpler approach.
+          -- Actually: cpn is idempotent (cpn_cpn) and absorbs everything.
+          -- Show: paco P X ≤ cpn F X by using cpn.base and paco_mon
+          -- paco P (S ⊔ S) ≤ paco P (cpn F S) (if S ≤ cpn F S, by cpn.base)
+          have hS_le : S ⊔ S ≤ cpn F S := sup_le cpn.base cpn.base
+          have hp'' := paco_mon (composeRclo F (cpn F)) hS_le u v hp
+          -- Now: paco P (cpn F S) ≤ cpn F (cpn F S) via cpn.base applied to whole paco
+          -- Actually need paco P X ≤ cpn F X
+          -- Use the fact that paco P X ⊆ gfp P ⊆ gfp F (when clo ⊆ cpn)
+          -- Or simpler: any R ≤ cpn F R by cpn.base
+          exact cpn.base u v hp''
+        · exact cpn.base
+      have h3 : cpn F (paco (composeRclo F (cpn F)) (S ⊔ S) ⊔ S) ≤ cpn F (cpn F S) := cpn.mono h2
+      have h4 : cpn F (cpn F S) ≤ cpn F S := cpn.cpn_cpn
+      exact (Rel.le_trans (Rel.le_trans h1 h3) h4) a b hg
+    -- Now show gupaco (gupaco R) ≤ gupaco R
+    -- gupaco (gupaco R) ≤ cpn F (gupaco R) ≤ cpn F (cpn F R) ≤ cpn F R ≤ gupaco R
+    have h1 : gupaco_clo F (cpn F) (gupaco_clo F (cpn F) R) ≤ cpn F (gupaco_clo F (cpn F) R) :=
+      h_gup_le_cpn (gupaco_clo F (cpn F) R)
+    have h2 : cpn F (gupaco_clo F (cpn F) R) ≤ cpn F (cpn F R) := cpn.mono (h_gup_le_cpn R)
+    have h3 : cpn F (cpn F R) ≤ cpn F R := cpn.cpn_cpn
+    have h4 : cpn F R ≤ gupaco_clo F (cpn F) R := clo_le_gupaco_clo F (cpn F) R
+    exact (Rel.le_trans (Rel.le_trans (Rel.le_trans h1 h2) h3) h4) x y hgup
+  -- Now use wcompat_compat_gupaco
+  exact wcompat_compat_gupaco F cpn.cpn_cloMono (cpn.wcompat F) h_idemp
 
 /-- gupaco_clo with cpn absorbs into cpn: gupaco_clo F (cpn F) R ≤ cpn F R
 
@@ -271,8 +331,11 @@ theorem cpn.gupaco_eq (F : MonoRel α) (R : Rel α) :
   · intro x y hcpn
     simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
     -- cpn F R ≤ rclo (cpn F) R ≤ rclo (cpn F) (paco G R ⊔ R)
-    apply rclo.clo R rclo.base_le
-    exact hcpn
+    -- First: cpn F R ≤ rclo (cpn F) R via rclo.clo_base
+    have h1 : rclo (cpn F) R x y := rclo.clo_base hcpn
+    -- Then: rclo (cpn F) R ≤ rclo (cpn F) (paco ... ⊔ R) via rclo.mono
+    have h2 : R ≤ paco (composeRclo F (cpn F)) R ⊔ R := le_sup_right
+    exact rclo.mono h2 h1
 
 /-- cpn absorbs upaco: cpn F (upaco G S) ≤ cpn F S when G = composeRclo F clo and clo ≤ cpn F -/
 theorem cpn.upaco_absorb (F : MonoRel α) (clo : Rel α → Rel α)
@@ -286,9 +349,27 @@ theorem cpn.upaco_absorb (F : MonoRel α) (clo : Rel α → Rel α)
     simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
     exact rclo.base hup
   have h_clo_le : ∀ R, clo R ≤ cpn F R := fun R => cpn.greatest h_mono h_compat
+  -- To show gupaco_clo F clo S ≤ gupaco_clo F (cpn F) S, we need to handle both:
+  -- 1. The change from rclo clo to rclo (cpn F)
+  -- 2. The change from paco (composeRclo F clo) to paco (composeRclo F (cpn F))
+  have h_rclo_clo_le : ∀ R, rclo clo R ≤ rclo (cpn F) R := fun R => rclo.mono_clo h_clo_le
+  have h_paco_le : paco (composeRclo F clo) S ≤ paco (composeRclo F (cpn F)) S := by
+    apply paco_mon_gen
+    intro R x y hFrclo
+    simp only [composeRclo_def] at hFrclo ⊢
+    exact F.mono' (h_rclo_clo_le R) x y hFrclo
   have h2 : gupaco_clo F clo S ≤ gupaco_clo F (cpn F) S := by
     simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
-    apply rclo.mono_clo h_clo_le
+    intro x y hrclo
+    -- hrclo : rclo clo (paco (composeRclo F clo) S ⊔ S) x y
+    -- Goal: rclo (cpn F) (paco (composeRclo F (cpn F)) S ⊔ S) x y
+    have h_inner_le : paco (composeRclo F clo) S ⊔ S ≤ paco (composeRclo F (cpn F)) S ⊔ S :=
+      sup_le_sup_right h_paco_le S
+    have h_rclo_inner : rclo clo (paco (composeRclo F clo) S ⊔ S) ≤
+                        rclo clo (paco (composeRclo F (cpn F)) S ⊔ S) := rclo.mono h_inner_le
+    have h_rclo_outer : rclo clo (paco (composeRclo F (cpn F)) S ⊔ S) ≤
+                        rclo (cpn F) (paco (composeRclo F (cpn F)) S ⊔ S) := h_rclo_clo_le _
+    exact h_rclo_outer x y (h_rclo_inner x y hrclo)
   have h3 : gupaco_clo F (cpn F) S = cpn F S := cpn.gupaco_eq F S
   calc cpn F (upaco (composeRclo F clo) S)
       ≤ cpn F (gupaco_clo F clo S) := cpn.mono h1
