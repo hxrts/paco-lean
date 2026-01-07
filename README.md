@@ -18,7 +18,9 @@ Paco parametrizes the fixed point:
 paco F r = gfp (fun R => F(R ∪ r))
 ```
 
-The parameter `r` accumulates facts during the proof. The coinductive hypothesis becomes `upaco F r = paco F r ∪ r`.
+The parameter `r` accumulates facts during the proof and the coinductive hypothesis becomes `upaco F r = paco F r ∪ r`.
+
+This package makes use of Alex C. Keizer's [Lean 4 formalization](https://github.com/alexkeizer/QpfTypes) of coinductive data types based on quotients of polynomial functors, which extends [foundational work](https://github.com/avigad/qpf) from Jeremy Avigad, Mario Carneiro, and Simon Hudon.
 
 ## Modules
 
@@ -67,10 +69,12 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 
 ## References
 
+- [Implementing a definitional (co)datatype package in Lean 4, based on quotients of polynomial functors](https://eprints.illc.uva.nl/id/eprint/2239/1/MoL-2023-03.text.pdf)
+- [Datatypes as Quotients of Polynomial Functors](https://www.andrew.cmu.edu/user/avigad/Talks/qpf.pdf)
 - [The Power of Parameterization in Coinductive Proof (POPL 2013)](https://plv.mpi-sws.org/paco/)
 - [An Equational Theory for Weak Bisimulation via Generalized Parameterized Coinduction (CPP 2020)](https://paulhe.com/assets/gpaco.pdf)
 - [Interaction Trees (POPL 2020)](https://github.com/DeepSpec/InteractionTrees)
 
 ## License
 
-MIT
+Apache 2.0
