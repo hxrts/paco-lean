@@ -2,6 +2,7 @@ import Paco.UpTo.Rclo
 import Paco.UpTo.Compat
 import Paco.UpTo.Cpn
 import Paco.UpTo.GPacoClo
+import Paco.UpTo.WCompat
 import Paco.UpTo.Closures
 
 /-!
@@ -34,6 +35,7 @@ The gpaco framework extends paco by:
 - `Paco.UpTo.Compat`: Compatibility definitions and basic lemmas
 - `Paco.UpTo.Cpn`: Companion construction and properties
 - `Paco.UpTo.GPacoClo`: GPaco with closure, coinduction principles
+- `Paco.UpTo.WCompat`: Weak compatibility theory and companion integration
 - `Paco.UpTo.Closures`: Common up-to closures (reflexive, symmetric, etc.)
 
 ## References
