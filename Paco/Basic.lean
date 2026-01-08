@@ -303,7 +303,14 @@ theorem paco_acc_upaco {α : Type*} (F : MonoRel α) (r : Rel α) :
 ### Coinduction Principle
 -/
 
-/-- Main coinduction principle for paco.
+/-- Main coinduction principle for paco (relational form).
+
+To prove `R ≤ paco F r`, show that R is a post-fixpoint: `∀ a b, R a b → F (R ⊔ r) a b` -/
+theorem paco_coind' {α : Type*} (F : MonoRel α) (r : Rel α) (R : Rel α)
+    (hpost : ∀ a b, R a b → F (R ⊔ r) a b) : R ≤ paco F r :=
+  fun _ _ hxy => ⟨R, hpost, hxy⟩
+
+/-- Coinduction principle (pointwise form).
 
 To prove `paco F r x y`, provide a relation R with:
 1. `R x y` (the goal is in R)
@@ -312,12 +319,7 @@ theorem paco_coind {α : Type*} (F : MonoRel α) (R : Rel α) (r : Rel α)
     {x y : α}
     (hpost : ∀ a b, R a b → F (R ⊔ r) a b)
     (hxy : R x y) : paco F r x y :=
-  ⟨R, hpost, hxy⟩
-
-/-- Coinduction with the relation as the first argument (for easier use with refine) -/
-theorem paco_coind' {α : Type*} (F : MonoRel α) (r : Rel α) (R : Rel α)
-    (hpost : ∀ a b, R a b → F (R ⊔ r) a b) : R ≤ paco F r :=
-  fun _ _ hxy => paco_coind F R r hpost hxy
+  paco_coind' F r R hpost x y hxy
 
 /-!
 ### Relationship to Greatest Fixed Point
@@ -447,25 +449,13 @@ theorem paco_close {α : Type*} (F : MonoRel α) (r : Rel α) (hr : r ≤ paco F
 ### Additional Accumulation Lemmas
 -/
 
-/-- Accumulation: facts proven via paco can be added to the parameter.
+/-- Accumulate paco into upaco parameter.
 
-This is the key lemma that makes paco proofs compositional. If you've proven
-`paco F r x y`, you can use `x, y` as an additional hypothesis in future paco proofs. -/
-theorem paco_accum {α : Type*} (F : MonoRel α) (r : Rel α) {x y : α}
-    (h : paco F r x y) : paco F (paco F r ⊔ r) x y := by
-  -- paco F r ≤ paco F (paco F r ⊔ r) by monotonicity
-  apply paco_mon F le_sup_right
-  exact h
-
-/-- Variant: accumulate into upaco -/
-theorem paco_accum' {α : Type*} (F : MonoRel α) (r : Rel α) :
+This is the canonical accumulation pattern: facts proven via paco can be accumulated
+into the parameter for future proofs. -/
+theorem paco_accum {α : Type*} (F : MonoRel α) (r : Rel α) :
     paco F r ≤ paco F (upaco F r) :=
   paco_mon F (r_le_upaco F r)
-
-/-- Double accumulation: paco F (paco F (paco F r)) ≤ paco F r -/
-theorem paco_acc_acc {α : Type*} (F : MonoRel α) (r : Rel α) :
-    paco F (paco F (paco F r)) ≤ paco F r :=
-  Rel.le_trans (paco_acc F (paco F r)) (paco_acc F r)
 
 /-!
 ### Coinduction with Accumulation
@@ -482,13 +472,5 @@ theorem paco_coind_acc {α : Type*} (F : MonoRel α) (R : Rel α) (r : Rel α)
   -- First get paco F (upaco F r) x y, then use paco_acc_upaco
   have h : paco F (upaco F r) x y := paco_coind F R (upaco F r) hpost hxy
   exact paco_acc_upaco F r x y h
-
-/-- Coinduction with symmetry: useful for proving symmetric relations -/
-theorem paco_coind_symm {α : Type*} (F : MonoRel α) (R : Rel α) (r : Rel α)
-    {x y : α}
-    (hR_symm : ∀ a b, R a b → R b a)
-    (hpost : ∀ a b, R a b → F (R ⊔ r) a b)
-    (hxy : R x y) : paco F r x y ∧ paco F r y x :=
-  ⟨paco_coind F R r hpost hxy, paco_coind F R r hpost (hR_symm x y hxy)⟩
 
 end Paco
