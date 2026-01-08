@@ -286,30 +286,13 @@ theorem paco_acc {α : Type*} (F : MonoRel α) (r : Rel α) :
 theorem paco_acc_upaco {α : Type*} (F : MonoRel α) (r : Rel α) :
     paco F (upaco F r) ≤ paco F r := by
   intro x y ⟨R, hR, hxy⟩
-  -- hR : ∀ a b, R a b → F (R ⊔ upaco F r) a b
-  -- upaco F r = paco F r ⊔ r
-  -- So R ⊔ upaco F r = R ⊔ paco F r ⊔ r
   refine ⟨R ⊔ paco F r, ?_, Or.inl hxy⟩
   intro a b hab
   cases hab with
   | inl hRab =>
-    -- Need: F (R ⊔ paco F r ⊔ r) a b
-    -- Have: F (R ⊔ upaco F r) a b = F (R ⊔ paco F r ⊔ r) a b
-    -- R ⊔ upaco F r = R ⊔ (paco F r ⊔ r) = (R ⊔ paco F r) ⊔ r by assoc
+    -- R ⊔ upaco F r = R ⊔ paco F r ⊔ r
     have heq : R ⊔ upaco F r = R ⊔ paco F r ⊔ r := by
-      ext u v
-      simp only [upaco, Rel.union_apply]
-      constructor
-      · intro h; cases h with
-        | inl hR => left; left; exact hR
-        | inr hup => cases hup with
-          | inl hp => left; right; exact hp
-          | inr hr => right; exact hr
-      · intro h; cases h with
-        | inl h' => cases h' with
-          | inl hR => left; exact hR
-          | inr hp => right; left; exact hp
-        | inr hr => right; right; exact hr
+      ext u v; simp only [upaco, Rel.union_apply]; tauto
     rw [← heq]
     exact hR a b hRab
   | inr hPab =>

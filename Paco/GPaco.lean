@@ -66,21 +66,7 @@ theorem gupaco_eq_upaco (F : MonoRel α) (r g : Rel α) :
     gupaco F r g = upaco F (r ⊔ g) := by
   ext x y
   simp only [gupaco, gpaco, upaco, Rel.union_apply]
-  constructor
-  · intro h
-    cases h with
-    | inl hgp =>
-      cases hgp with
-      | inl hp => left; exact hp
-      | inr hr => right; left; exact hr
-    | inr hg => right; right; exact hg
-  · intro h
-    cases h with
-    | inl hp => left; left; exact hp
-    | inr hrg =>
-      cases hrg with
-      | inl hr => left; right; exact hr
-      | inr hg => right; exact hg
+  tauto
 
 /-- gpaco with no guarded parameter -/
 theorem gpaco_bot_g (F : MonoRel α) (r : Rel α) :
@@ -202,22 +188,11 @@ theorem gpaco_acc (F : MonoRel α) (r g : Rel α) :
   cases hxy with
   | inl hpaco =>
     left
-    -- hpaco : paco F (r ⊔ (gpaco F r g ⊔ g)) x y
-    -- Need: paco F (r ⊔ g) x y
-    -- r ⊔ (gpaco F r g ⊔ g) = r ⊔ (paco F (r ⊔ g) ⊔ r ⊔ g)
-    --                       ≤ upaco F (r ⊔ g)
+    -- r ⊔ (gpaco F r g ⊔ g) ≤ upaco F (r ⊔ g)
     have hle : r ⊔ (gpaco F r g ⊔ g) ≤ upaco F (r ⊔ g) := by
       intro a b hab
       simp only [gpaco, upaco, Rel.union_apply] at hab ⊢
-      cases hab with
-      | inl hr => right; left; exact hr
-      | inr hgg =>
-        cases hgg with
-        | inl hgp =>
-          cases hgp with
-          | inl hp => left; exact hp
-          | inr hr' => right; left; exact hr'
-        | inr hg => right; right; exact hg
+      tauto
     have hpaco' := paco_mon F hle x y hpaco
     exact paco_acc_upaco F (r ⊔ g) x y hpaco'
   | inr hr =>
