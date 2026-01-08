@@ -226,17 +226,6 @@ theorem upaco_mon {α : Type*} (F : MonoRel α) {r s : Rel α} (hrs : r ≤ s) :
   sup_le_sup (paco_mon F hrs) hrs
 
 /-!
-### The Witness Relation
-
-Key lemma: any witness relation R used in paco is contained in paco.
--/
-
-/-- Any witness relation is contained in paco -/
-theorem witness_le_paco {α : Type*} (F : MonoRel α) (r : Rel α) (R : Rel α)
-    (hR : ∀ a b, R a b → F (R ⊔ r) a b) : R ≤ paco F r :=
-  fun _ _ hab => ⟨R, hR, hab⟩
-
-/-!
 ### Unfolding and Folding
 -/
 
@@ -244,7 +233,8 @@ theorem witness_le_paco {α : Type*} (F : MonoRel α) (r : Rel α) (R : Rel α)
 theorem paco_unfold {α : Type*} (F : MonoRel α) (r : Rel α) :
     paco F r ≤ F (upaco F r) := by
   intro x y ⟨R, hR, hxy⟩
-  have hR_le : R ≤ paco F r := witness_le_paco F r R hR
+  -- Any witness relation R is contained in paco
+  have hR_le : R ≤ paco F r := fun _ _ hab => ⟨R, hR, hab⟩
   apply F.mono' (sup_le_sup hR_le (Rel.le_refl r))
   exact hR x y hxy
 
