@@ -136,9 +136,11 @@ instance instCompleteLattice : CompleteLattice (Rel α) where
   le_top := fun _ _ _ _ => trivial
   bot_le := fun _ _ _ h => h.elim
 
+@[simp]
 theorem sup_bot (R : Rel α) : R ⊔ ⊥ = R := by
   ext x y; simp
 
+@[simp]
 theorem bot_sup (R : Rel α) : ⊥ ⊔ R = R := by
   ext x y; simp
 
@@ -350,6 +352,7 @@ theorem paco_bot {α : Type*} (F : MonoRel α) :
     exact hab
 
 /-- upaco with empty parameter equals the greatest fixed point -/
+@[simp]
 theorem upaco_bot {α : Type*} (F : MonoRel α) :
     upaco F ⊥ = paco F ⊥ := by
   simp only [upaco, Rel.sup_bot]

@@ -69,11 +69,13 @@ theorem gupaco_eq_upaco (F : MonoRel α) (r g : Rel α) :
   tauto
 
 /-- gpaco with no guarded parameter -/
+@[simp]
 theorem gpaco_bot_g (F : MonoRel α) (r : Rel α) :
     gpaco F r ⊥ = upaco F r := by
   simp only [gpaco, Rel.sup_bot, upaco]
 
 /-- gpaco with no available parameter -/
+@[simp]
 theorem gpaco_bot_r (F : MonoRel α) (g : Rel α) :
     gpaco F ⊥ g = paco F g := by
   simp only [gpaco, Rel.bot_sup]
