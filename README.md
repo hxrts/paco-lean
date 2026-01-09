@@ -20,7 +20,15 @@ paco F r = gfp (fun R => F(R ∪ r))
 
 The parameter `r` accumulates facts during the proof and the coinductive hypothesis becomes `upaco F r = paco F r ∪ r`.
 
-This package makes use of Alex C. Keizer's [Lean 4 formalization](https://github.com/alexkeizer/QpfTypes) of coinductive data types based on quotients of polynomial functors, which extends [foundational work](https://github.com/avigad/qpf) from Jeremy Avigad, Mario Carneiro, and Simon Hudon.
+Optional integration with QPF/ITree lives in a separate package (see `paco-qpf`). The core paco library itself is QPF-agnostic.
+
+## Separation of concerns
+
+This package is **generic** and should remain independent of QPF/ITree:
+- **In scope**: relations, monotone transformers, paco/upaco/gpaco, up-to, companion
+- **Out of scope**: QPF types, ITree, domain-specific bisimulation proofs
+
+If you want paco-based proofs for QPF/ITree, use the integration package `paco-qpf`.
 
 ## Modules
 

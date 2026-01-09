@@ -1,8 +1,8 @@
 import Paco.Basic
+import Paco.Companion
 import Paco.GPaco
 import Paco.Tactic
 import Paco.UpTo
-import Paco.Bisim
 
 /-!
 # Parametrized Coinduction (Paco)
