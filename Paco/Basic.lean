@@ -144,6 +144,28 @@ theorem sup_bot (R : Rel α) : R ⊔ ⊥ = R := by
 theorem bot_sup (R : Rel α) : ⊥ ⊔ R = R := by
   ext x y; simp
 
+/-!
+### Scoped Notation and Additional Simp Lemmas
+-/
+
+/-- Scoped notation for relation subset -/
+scoped infixl:50 " ⊆ᵣ " => Rel.le
+
+@[simp] theorem sup_assoc (R S T : Rel α) : (R ⊔ S) ⊔ T = R ⊔ (S ⊔ T) := by
+  ext x y; simp only [union_apply]; tauto
+
+@[simp] theorem sup_comm (R S : Rel α) : R ⊔ S = S ⊔ R := by
+  ext x y; simp only [union_apply]; tauto
+
+@[simp] theorem sup_idem (R : Rel α) : R ⊔ R = R := by
+  ext x y; simp only [union_apply]; tauto
+
+@[simp] theorem inf_bot (R : Rel α) : R ⊓ ⊥ = ⊥ := by
+  ext x y; simp
+
+@[simp] theorem bot_inf (R : Rel α) : ⊥ ⊓ R = ⊥ := by
+  ext x y; simp
+
 end Rel
 
 /-!
@@ -249,7 +271,9 @@ theorem paco_fold {α : Type*} (F : MonoRel α) (r : Rel α) :
   apply F.mono' h2
   exact hab
 
-/-- paco is a fixed point: paco F r = F (upaco F r) -/
+/-- paco is a fixed point: paco F r = F (upaco F r)
+
+Note: Not marked @[simp] to avoid infinite rewriting loops. -/
 theorem paco_eq {α : Type*} (F : MonoRel α) (r : Rel α) :
     paco F r = F (upaco F r) :=
   Rel.le_antisymm (paco_unfold F r) (paco_fold F r)
@@ -352,16 +376,19 @@ theorem upaco_bot {α : Type*} (F : MonoRel α) :
 -/
 
 /-- Left injection into upaco -/
+@[simp]
 theorem paco_le_upaco {α : Type*} (F : MonoRel α) (r : Rel α) :
     paco F r ≤ upaco F r :=
   le_sup_left
 
 /-- Right injection into upaco -/
+@[simp]
 theorem r_le_upaco {α : Type*} (F : MonoRel α) (r : Rel α) :
     r ≤ upaco F r :=
   le_sup_right
 
 /-- upaco is idempotent in a sense -/
+@[simp]
 theorem upaco_sup_r {α : Type*} (F : MonoRel α) (r : Rel α) :
     upaco F r ⊔ r = upaco F r := by
   simp only [upaco, sup_assoc, sup_idem]

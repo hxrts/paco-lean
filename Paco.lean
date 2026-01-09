@@ -4,6 +4,8 @@ import Paco.GPaco
 import Paco.Examples.Basic
 import Paco.Tactic
 import Paco.UpTo
+import Paco.Coind
+import Paco.Simp
 
 /-!
 # Parametrized Coinduction (Paco)

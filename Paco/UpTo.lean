@@ -4,6 +4,7 @@ import Paco.UpTo.Cpn
 import Paco.UpTo.GPacoClo
 import Paco.UpTo.WCompat
 import Paco.UpTo.Closures
+import Paco.UpTo.Compose
 
 /-!
 # Up-To Techniques for Paco (GPaco with Closures)

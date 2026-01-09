@@ -62,6 +62,7 @@ theorem gupaco_def (F : MonoRel α) (r g : Rel α) :
     gupaco F r g = gpaco F r g ⊔ g := rfl
 
 /-- gupaco equals upaco with merged parameters -/
+@[simp]
 theorem gupaco_eq_upaco (F : MonoRel α) (r g : Rel α) :
     gupaco F r g = upaco F (r ⊔ g) := by
   ext x y
@@ -126,11 +127,13 @@ theorem paco_le_gpaco (F : MonoRel α) (r g : Rel α) :
   le_sup_left
 
 /-- gpaco injects into gupaco -/
+@[simp]
 theorem gpaco_le_gupaco (F : MonoRel α) (r g : Rel α) :
     gpaco F r g ≤ gupaco F r g :=
   le_sup_left
 
 /-- g injects into gupaco (guard released) -/
+@[simp]
 theorem g_le_gupaco (F : MonoRel α) (r g : Rel α) : g ≤ gupaco F r g :=
   le_sup_right
 
@@ -168,7 +171,9 @@ theorem gpaco_fold (F : MonoRel α) (r g : Rel α) :
   rw [gupaco_eq_upaco] at hxy
   exact paco_fold F (r ⊔ g) x y hxy
 
-/-- gpaco step equation -/
+/-- gpaco step equation
+
+Note: Not marked @[simp] to avoid infinite rewriting loops. -/
 theorem gpaco_step (F : MonoRel α) (r g : Rel α) :
     gpaco F r g = F (gupaco F r g) ⊔ r := by
   apply Rel.le_antisymm
@@ -305,6 +310,7 @@ theorem gpaco_coind (F : MonoRel α) (R : Rel α) (r g : Rel α)
 -/
 
 /-- gpaco with equal parameters reduces to upaco -/
+@[simp]
 theorem gpaco_diag (F : MonoRel α) (r : Rel α) :
     gpaco F r r = upaco F r := by
   simp only [gpaco, upaco, sup_idem]

@@ -7,7 +7,7 @@ package paco {
 @[default_target]
 lean_lib Paco
 
-lean_lib Test
+lean_lib Tests
 
 require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git"@"master"
