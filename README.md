@@ -34,9 +34,10 @@ If you want paco-based proofs for QPF/ITree, use the integration package `paco-q
 
 - **`Paco.Basic`**: Core definitions (`paco`, `upaco`, `MonoRel`) and lemmas
 - **`Paco.GPaco`**: Generalized paco with guarded parameters (`gpaco`, `gupaco`)
-- **`Paco.Tactic`**: Tactics for ergonomic proofs (`pcofix`, `punfold`, `pfold`, etc.)
+- **`Paco.Tactic`**: Tactics for ergonomic proofs (`pfold`, `punfold`, `pstep`, `pbase`, etc.)
+- **`Paco.Coind`**: Ergonomic coinduction wrappers (`coind`, `gcoind`, `upto_coind`)
 - **`Paco.UpTo`**: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
-- **`Paco.UpTo.GPacoClo`**: GPaco with user closures, companion (`cpn`), and coinduction/accumulation lemmas
+- **`Paco.Companion`**: Companion construction (greatest compatible closure)
 
 ## Installation
 
@@ -44,8 +45,10 @@ Add to your `lakefile.lean`:
 
 ```lean
 require paco from git
-  "https://github.com/YOUR_USERNAME/paco-lean.git"@"main"
+  "https://github.com/hxrts/paco-lean.git"@"main"
 ```
+
+See [docs/01-setup.md](docs/01-setup.md) for detailed setup instructions including Nix flake support.
 
 ## Usage
 
@@ -78,10 +81,17 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 | `gpaco_clo_coind` | Coinduction principle for gpaco with closures |
 | `gpaco_clo_gupaco` | Gupaco absorption into gpaco (accumulation) |
 
+## Documentation
+
+- [Setup Guide](docs/01-setup.md)
+- [Theoretical Foundations](docs/02-theory.md)
+- [Architecture Guide](docs/03-architecture.md)
+- [Basic Usage Tutorial](docs/04-basic-usage.md)
+- [GPaco & Guards Tutorial](docs/05-gpaco-guide.md)
+- [Up-To Techniques Guide](docs/06-upto-guide.md)
+
 ## References
 
-- [Implementing a definitional (co)datatype package in Lean 4, based on quotients of polynomial functors](https://eprints.illc.uva.nl/id/eprint/2239/1/MoL-2023-03.text.pdf)
-- [Datatypes as Quotients of Polynomial Functors](https://www.andrew.cmu.edu/user/avigad/Talks/qpf.pdf)
 - [The Power of Parameterization in Coinductive Proof (POPL 2013)](https://plv.mpi-sws.org/paco/)
 - [An Equational Theory for Weak Bisimulation via Generalized Parameterized Coinduction (CPP 2020)](https://paulhe.com/assets/gpaco.pdf)
 - [Interaction Trees (POPL 2020)](https://github.com/DeepSpec/InteractionTrees)
