@@ -1,6 +1,7 @@
 import Paco.Basic
 import Paco.Companion
 import Paco.GPaco
+import Paco.Examples.Basic
 import Paco.Tactic
 import Paco.UpTo
 
