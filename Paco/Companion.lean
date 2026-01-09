@@ -27,7 +27,7 @@ structure Companion (F : MonoRel α) where
 ## Canonical companion (cpn) and convenience lemmas
 -/
 
-/** Canonical companion closure operator. */
+/-- Canonical companion closure operator. -/
 def companion (F : MonoRel α) : Rel α → Rel α := cpn F
 
 /-- The canonical companion built from `cpn`. -/
