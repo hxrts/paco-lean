@@ -72,7 +72,7 @@ theorem companion_gupaco_eq (F : MonoRel α) (R : Rel α) :
 
 
 /-- F is compatible with relational composition (transitive closure). --/
-class CompCompatible (F : MonoRel α) : Prop :=
+class CompCompatible (F : MonoRel α) : Prop where
   (comp : Compatible F (transClosure (α := α)))
 
 /-- The companion is closed under F application: F (companion F R) ≤ companion F R.

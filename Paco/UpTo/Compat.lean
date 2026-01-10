@@ -104,7 +104,7 @@ discharged in specialized settings.
 -/
 
 /-- Assumption: extendedGen-compatible closures are F-compatible. -/
-class ExtCompatImpliesCompat (F : MonoRel α) : Prop :=
+class ExtCompatImpliesCompat (F : MonoRel α) : Prop where
   (h : ∀ clo, CloMono clo → Compatible (extendedGen F) clo → Compatible F clo)
 
 /-!
@@ -114,7 +114,7 @@ The following conditions provide concrete instances of ExtCompatImpliesCompat.
 -/
 
 /-- Inflationary generators: R ≤ F R for all R. -/
-class Inflationary (F : MonoRel α) : Prop :=
+class Inflationary (F : MonoRel α) : Prop where
   (h : ∀ R, R ≤ F R)
 
 /-- If F is inflationary, then any extendedGen-compatible closure is F-compatible. -/
