@@ -136,6 +136,15 @@ instance instCompleteLattice : CompleteLattice (Rel α) where
   le_top := fun _ _ _ _ => trivial
   bot_le := fun _ _ _ h => h.elim
 
+
+/-- Helper: lift ≤ into the left side of ⊔. --/
+theorem sup_le_sup_left_rel {R S T : Rel α} (h : R ≤ S) : R ⊔ T ≤ S ⊔ T :=
+  sup_le_sup h (Rel.le_refl _)
+
+/-- Helper: lift ≤ into the right side of ⊔. --/
+theorem sup_le_sup_right_rel {R S T : Rel α} (h : R ≤ S) : T ⊔ R ≤ T ⊔ S :=
+  sup_le_sup (Rel.le_refl _) h
+
 @[simp]
 theorem sup_bot (R : Rel α) : R ⊔ ⊥ = R := by
   ext x y; simp

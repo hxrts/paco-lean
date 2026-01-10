@@ -23,7 +23,13 @@ Paco.lean (root)
     ├── GPacoClo.lean    -- GPaco with closures
     ├── WCompat.lean     -- Weak compatibility
     ├── Closures.lean    -- Standard closures
-    ├── Respectful.lean  -- Respectfulness
+    ├── Respectful.lean  -- Respectfulness (umbrella)
+    ├── Respectful/       -- Respectfulness submodules
+    │   ├── Core.lean      -- Compatible' + companion bridge
+    │   ├── Tagged.lean    -- Tagged relations for proofs
+    │   ├── WRespectful.lean
+    │   ├── PRespectful.lean
+    │   └── GRespectful.lean
     └── Compose.lean     -- Closure composition
 ```
 
@@ -131,9 +137,10 @@ This module proves composition lemmas for closures. Composing compatible closure
 
 ### Paco/UpTo/Respectful.lean
 
-This module defines wrespectful, prespectful, and grespectful conditions and connects them
-to the companion. The companion lemmas for PRespectful and GRespectful currently route through
-`Compatible'` plus `ExtCompatImpliesCompat` assumptions to stay usable in concrete settings.
+This is the umbrella module for respectfulness; the actual content lives in
+`Paco/UpTo/Respectful/*` submodules (Core/Tagged/W/P/G). The companion lemmas for
+PRespectful and GRespectful currently route through `Compatible'` plus
+`ExtCompatImpliesCompat` assumptions to stay usable in concrete settings.
 
 ## Key Types
 

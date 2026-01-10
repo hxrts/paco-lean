@@ -1,5 +1,6 @@
 import Paco.UpTo.WCompat
 import Paco.UpTo.Closures
+import Paco.UpTo.CompatProps
 
 /-!
 # Companion Interface
@@ -70,10 +71,6 @@ theorem companion_gupaco_eq (F : MonoRel α) (R : Rel α) :
     gupaco_clo F (companion F) R = companion F R := by
   simpa [companion] using cpn.gupaco_eq (F := F) (R := R)
 
-
-/-- F is compatible with relational composition (transitive closure). --/
-class CompCompatible (F : MonoRel α) : Prop where
-  (comp : Compatible F (transClosure (α := α)))
 
 /-- The companion is closed under F application: F (companion F R) ≤ companion F R.
 
