@@ -201,7 +201,7 @@ composition-compatible. The ergonomic workflow is:
 ```lean
 /-- If F preserves transitive closure, then transClosure is compatible. --/
 theorem transClosure_compatible_of_preserve (F : MonoRel α)
-    (h : ∀ R, F (transClosure R) ≤ transClosure (F R)) :
+    (h : ∀ R, transClosure (F R) ≤ F (transClosure R)) :
     Compatible F transClosure
 
 /-- F is compatible with relational composition. --/

@@ -109,7 +109,7 @@ The following are conditional results that hold when F has certain properties.
 
 /-- If F preserves transitive closure, then transClosure is compatible with F. -/
 theorem transClosure_compatible_of_preserve (F : MonoRel α)
-    (h : ∀ R, F (transClosure R) ≤ transClosure (F R)) :
+    (h : ∀ R, transClosure (F R) ≤ F (transClosure R)) :
     Compatible F (transClosure (α := α)) := by
   intro R x y hTR
   exact h R x y hTR
