@@ -1,4 +1,5 @@
 import Paco.UpTo.WCompat
+import Paco.UpTo.Closures
 
 /-!
 # Companion Interface
@@ -76,5 +77,22 @@ about the companion. -/
 theorem companion_step (F : MonoRel α) (R : Rel α) :
     F (companion F R) ≤ companion F R :=
   cpn.step
+
+/-- Companion composition via transitive closure.
+
+Assumes `transClosure` is compatible with `F`, so the companion absorbs the
+transitive closure of itself and is therefore closed under composition. -/
+theorem companion_compose (F : MonoRel α) (R : Rel α)
+    (h_trans_compat : Compatible F (transClosure (α := α))) :
+    ∀ a b c, companion F R a b → companion F R b c → companion F R a c := by
+  intro a b c hab hbc
+  have h_trans : transClosure (companion F R) a c :=
+    transClosure.trans (transClosure.base hab) (transClosure.base hbc)
+  have h_le : transClosure (companion F R) ≤ companion F R := by
+    have h1 : transClosure (companion F R) ≤ companion F (companion F R) :=
+      companion_greatest (F := F) (R := companion F R)
+        (h_mono := transClosure_mono) (h_compat := h_trans_compat)
+    exact Rel.le_trans h1 (companion_idem (F := F) (R := R))
+  exact h_le a c h_trans
 
 end Paco

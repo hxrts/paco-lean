@@ -37,6 +37,7 @@ If you want paco-based proofs for QPF/ITree, use the integration package `paco-q
 - **`Paco.Tactic`**: Tactics for ergonomic proofs (`pfold`, `punfold`, `pstep`, `pbase`, etc.)
 - **`Paco.Coind`**: Ergonomic coinduction wrappers (`coind`, `gcoind`, `upto_coind`)
 - **`Paco.UpTo`**: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
+- **`Paco.UpTo.Respectful`**: Respectfulness lemmas (wrespectful/prespectful/grespectful)
 - **`Paco.Companion`**: Companion construction (greatest compatible closure)
 - **`Paco.Compat`**: Coq paco naming compatibility aliases
 
@@ -83,6 +84,7 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 | `gpaco_clo_gupaco` | Gupaco absorption into gpaco (accumulation) |
 | `cloMono_union` | Union of monotone closures is monotone |
 | `wcompat_union` | Union of weakly compatible closures is weakly compatible |
+| `companion_compose` | Companion closed under composition (assumes transClosure compatible) |
 
 ## Documentation
 

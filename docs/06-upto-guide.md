@@ -102,6 +102,23 @@ theorem symmClosure_compatible (F : MonoRel α)
 
 Symmetric closure is compatible when F respects symmetry.
 
+
+## Respectfulness (wrespectful / prespectful / grespectful)
+
+Respectfulness is a weaker condition than compatibility that is often easier to prove.
+The library provides three forms:
+
+- `WRespectful F clo`: clo l ≤ F (rclo clo r) when l ≤ r and l ≤ F r
+- `PRespectful F clo`: clo l ≤ paco F (r ⊔ clo r) under the same guards
+- `GRespectful F clo`: clo l ≤ rclo (companion F) (F (rclo (clo ⊔ gupaco_clo F (companion F)) r))
+
+In this codebase, the companion lemmas for PRespectful and GRespectful are currently
+routed through the Compatible' → companion chain, which requires:
+- `Compatible' F clo`
+- `ExtCompatImpliesCompat F` (e.g., via `Inflationary F`)
+
+When you can show `Compatible' F clo`, you can use `compatible'_le_companion` directly.
+
 ## The rclo Construction
 
 The `rclo` type accumulates closure applications. It is the reflexive-transitive closure under a closure operator.
@@ -173,6 +190,16 @@ theorem companion_mono (F : MonoRel α) :
 ```
 
 The companion is monotone.
+
+
+The companion is also closed under relational composition when `transClosure` is compatible:
+
+```lean
+theorem companion_compose (F : MonoRel α) (R : Rel α)
+    (h_trans_compat : Compatible F transClosure) :
+    ∀ a b c, companion F R a b → companion F R b c → companion F R a c
+```
+
 
 ### Using the Companion
 

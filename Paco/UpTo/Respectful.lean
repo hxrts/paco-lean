@@ -44,18 +44,16 @@ The main theorem chain is:
 - `cpn_extendedGen_fixed`: cpn F R is a fixed point of extendedGen F
 - `compatible'_le_companion`: Compatible' closures ≤ companion (requires ExtCompatImpliesCompat)
 - `compat_wrespect`: Compatibility implies weak respectfulness
-- `wrespect_companion`: WRespectful implies clo ≤ companion (depends on wrespect_compatible')
-- `wrespect_uclo`, `prespect_uclo`, `grespect_uclo`: UClo lemmas
+- `cloMono_wrespectfulExt`: Compatible' + monotone closure implies WRespectfulExt
+- `wrespect_to_ext`: WRespectful + Compatible' implies WRespectfulExt
+- `wrespect_compatible'`: WRespectfulExt implies Compatible' for rclo clo
+- `wrespect_companion`: WRespectfulExt implies clo ≤ companion
+- `prespect_companion`, `grespect_companion`: via Compatible' + ExtCompatImpliesCompat
+- `wrespect_uclo`, `prespect_uclo`, `grespect_uclo`: UClo lemmas (prespect/grespect require Compatible')
 - `prespectClosure_mono`, `clo_le_prespectClosure`: Helper lemmas for PRespectful
 
 **Open (contain sorry):**
-- `wrespect_compatible'` (line ~417): WRespectful implies Compatible' for rclo clo
-  - Challenge: IH gives `R' ≤ A ⊔ B` but WRespectful needs `R' ≤ A` AND `R' ≤ F A`
-- `prespect_companion` (line ~587): PRespectful implies clo ≤ companion
-  - Challenge: Need to show paco F S ≤ cpn F S, which requires coinductive argument
-- `grespect_companion` (line ~712): GRespectful implies clo ≤ companion
-  - Challenge: Similar to prespect_companion
-
+- None in this module (remaining sorries tracked elsewhere)
 **Requires assumption:**
 - `cpn_extendedGen_le_cpn` (line ~205): cpn (extendedGen F) ≤ cpn F
   - Requires `ExtCompatImpliesCompat F` (see Compat.lean)
@@ -81,8 +79,8 @@ closure operations:
 1. **Use standard compatibility**: If your closure is Compatible F clo (the stronger
    condition), use `cpn.greatest` directly - no respectfulness needed.
 
-2. **Use `compat_wrespect`**: Convert compatibility to weak respectfulness for
-   compatibility with the WRespectful API.
+2. **Use `compat_wrespect`**: Convert compatibility to weak respectfulness; use
+   WRespectfulExt when the extended-generator form is available.
 
 3. **For Compatible' closures**: Use `compatible'_le_companion` after proving
    `Compatible (extendedGen F) clo`.
@@ -221,7 +219,10 @@ theorem cpn_eq_cpn_extendedGen (F : MonoRel α) (R : Rel α)
 theorem cpn_extendedGen_F_compat (F : MonoRel α) [ExtCompatImpliesCompat F] :
     Compatible F (cpn (extendedGen F)) := by
   intro R
-  simpa [cpn_eq_cpn_extendedGen (F := F) (R := R)] using (cpn.compat (F := F) (R := R))
+  -- Rewrite both occurrences of cpn F using the cpn equality at R and F R.
+  simpa [cpn_eq_cpn_extendedGen (F := F) (R := R),
+         cpn_eq_cpn_extendedGen (F := F) (R := F R)] using
+    (cpn.compat (F := F) (R := R))
 
 -- Note: compatible'_iff_compat_extended is now compatible'_iff_compat_extendedGen in Compat.lean
 
@@ -356,52 +357,26 @@ structure WRespectfulExt (F : MonoRel α) (clo : Rel α → Rel α) : Prop where
   /-- The extended respect condition -/
   respect : ∀ l r, l ≤ r ⊔ F r → clo l ≤ rclo clo r ⊔ F (rclo clo r)
 
-/-- Any monotone closure satisfies WRespectfulExt.
+/-- Any Compatible' monotone closure satisfies WRespectfulExt.
 
 This is because:
 - clo l ≤ clo (r ⊔ F r) by monotonicity (since l ≤ r ⊔ F r)
-- clo r ≤ rclo clo r by rclo.clo_base
-- clo (F r) ≤ ??? needs more structure, but we can route through the rclo side -/
+- clo (r ⊔ F r) ≤ clo r ⊔ F (clo r) by Compatible'
+- clo r ≤ rclo clo r by rclo.clo_base, and F respects ≤ -/
 theorem cloMono_wrespectfulExt (F : MonoRel α) {clo : Rel α → Rel α}
-    (h_mono : CloMono clo) : WRespectfulExt F clo where
+    (h_mono : CloMono clo) (h_compat' : Compatible' F clo) : WRespectfulExt F clo where
   mon := h_mono
   respect := by
     intro l r h_le_ext
     -- h_le_ext : l ≤ r ⊔ F r
     -- Goal: clo l ≤ rclo clo r ⊔ F (rclo clo r)
-    --
-    -- By monotonicity: clo l ≤ clo (r ⊔ F r)
-    -- For clo r: clo r ≤ rclo clo r ✓
-    -- For clo (F r): need clo (F r) ≤ rclo clo r ⊔ F (rclo clo r)
-    --
-    -- The simplest route: clo (F r) ≤ rclo clo (F r)
-    -- Then: rclo clo (F r) ≤ rclo clo (r ⊔ F r) by monotonicity
-    -- But we want ≤ rclo clo r, not ≤ rclo clo (r ⊔ F r).
-    --
-    -- Alternative: Just show clo l ≤ rclo clo r via monotonicity when l ≤ r,
-    -- and handle the F r case via the F output.
-
-    -- Strategy: Route everything through rclo clo (r ⊔ F r) first, then show
-    -- rclo clo (r ⊔ F r) ≤ rclo clo r ⊔ F (rclo clo r)
-
-    -- For now, use the simple monotonicity argument that lands in rclo clo:
-    -- clo l ≤ clo (r ⊔ F r) ≤ rclo clo (r ⊔ F r)
-    -- And rclo clo (r ⊔ F r) ≤ rclo clo r ⊔ F (rclo clo r) is exactly compatible'!
-    -- But that's circular...
-
-    -- Simpler: just show clo l lands in rclo clo r via the chain:
-    -- l ≤ r ⊔ F r ≤ rclo clo r ⊔ F r (since r ≤ rclo clo r)
-    -- clo l ≤ clo (rclo clo r ⊔ F r)
-    -- For clo (rclo clo r): ≤ rclo clo (rclo clo r) ≤ rclo clo r ✓
-    -- For clo (F r): ≤ rclo clo (F r) ≤ ??? still problematic
-
-    -- Actually, the cleanest: route through rclo clo r ⊔ rclo clo (F r)
-    -- and note that rclo clo (F r) ⊆ rclo clo (r ⊔ F r) contains base F r,
-    -- but we want it in F (rclo clo r) not rclo clo r.
-
-    -- The real fix: This theorem ISN'T true for arbitrary monotone clo!
-    -- We need the actual WRespectful condition to handle the F r case.
-    sorry
+    have h1 : clo l ≤ clo (r ⊔ F r) := h_mono _ _ h_le_ext
+    have h2 : clo (r ⊔ F r) ≤ clo r ⊔ F (clo r) := h_compat' r
+    have h3 : clo r ⊔ F (clo r) ≤ rclo clo r ⊔ F (rclo clo r) := by
+      apply sup_le
+      · exact Rel.le_trans rclo.clo_base le_sup_left
+      · exact Rel.le_trans (F.mono' rclo.clo_base) le_sup_right
+    exact Rel.le_trans h1 (Rel.le_trans h2 h3)
 
 /-- Weak respectfulness: a weaker condition than compatibility.
 
@@ -413,43 +388,10 @@ structure WRespectful (F : MonoRel α) (clo : Rel α → Rel α) : Prop where
   /-- The respect condition: clo l ≤ F (rclo clo r) when l ≤ r and l ≤ F r -/
   respect : ∀ l r, l ≤ r → l ≤ F r → clo l ≤ F (rclo clo r)
 
-/-- WRespectful implies WRespectfulExt. -/
+/-- WRespectful + Compatible' implies WRespectfulExt. -/
 theorem wrespect_to_ext (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : WRespectful F clo) : WRespectfulExt F clo where
-  mon := h.mon
-  respect := by
-    intro l r h_le_ext
-    -- h_le_ext : l ≤ r ⊔ F r
-    -- Goal: clo l ≤ rclo clo r ⊔ F (rclo clo r)
-    --
-    -- We need to handle two cases based on whether l came from r or F r.
-    -- But h_le_ext is a classical Or, so we do case analysis.
-
-    -- For elements from r:
-    -- - l ≤ r gives clo l ≤ clo r ≤ rclo clo r ✓
-
-    -- For elements from F r:
-    -- - l ≤ F r AND we need l ≤ r for WRespectful...
-    -- - But l ≤ F r doesn't give l ≤ r!
-
-    -- The key insight: We need to use WRespectful's structure.
-    -- WRespectful says: if l ≤ r AND l ≤ F r, then clo l ≤ F (rclo clo r).
-    --
-    -- For elements where l ≤ F r but NOT l ≤ r, we can't use WRespectful directly.
-    -- Instead, we use monotonicity: clo l ≤ clo (F r).
-    -- Then we need clo (F r) ≤ rclo clo r ⊔ F (rclo clo r).
-    --
-    -- This is where WRespectful helps! With l' = F r:
-    -- - l' ≤ r? F r ≤ r? Only with companion_step!
-    -- - l' ≤ F r? F r ≤ F r ✓
-    --
-    -- So we STILL can't apply WRespectful without F r ≤ r (companion_step).
-
-    -- Alternative: Accept that WRespectful does NOT imply WRespectfulExt in general.
-    -- The Coq proof works because their wrespectful is defined within a context
-    -- where gf = gf' = id ⊔ F, making the conditions align differently.
-
-    sorry
+    (h : WRespectful F clo) (h_compat' : Compatible' F clo) : WRespectfulExt F clo :=
+  cloMono_wrespectfulExt F h.mon h_compat'
 
 /-- rcloTagged elements (both guarded and unguarded) land in rclo clo R ⊔ F (rclo clo R)
     when clo satisfies WRespectfulExt. -/
@@ -490,7 +432,7 @@ theorem rcloTagged_le_extendedGen (clo : Rel α → Rel α) (F : MonoRel α) (R 
 
     exact h_final _ _ hclo
 
-/-- Weak respectfulness implies rclo clo is Compatible'.
+/-- Extended weak respectfulness implies rclo clo is Compatible'.
 
 This theorem shows that if clo is weakly respectful, then rclo clo satisfies
 the compatibility condition: rclo clo (R ⊔ F R) ≤ rclo clo R ⊔ F (rclo clo R).
@@ -518,132 +460,36 @@ The proof proceeds by induction on rclo:
   - Finally show F (rclo clo R ⊔ F (rclo clo R)) ≤ rclo clo R ⊔ F (rclo clo R)
 -/
 theorem wrespect_compatible' (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : WRespectful F clo) : Compatible' F (rclo clo) := by
-  intro R x y hrclo
-  -- Goal: (rclo clo R ⊔ F (rclo clo R)) x y
-  -- We induct on hrclo : rclo clo (R ⊔ F R) x y
-  induction hrclo with
-  | base hRF =>
-    -- hRF : (R ⊔ F R) x y
-    cases hRF with
-    | inl hR =>
-      -- hR : R x y
-      left; exact rclo.base hR
-    | inr hF =>
-      -- hF : F R x y
-      right; exact F.mono' rclo.base_le _ _ hF
-  | clo R' hR' hcloR' ih =>
-    -- hcloR' : clo R' x y
-    -- hR' : R' ≤ rclo clo (R ⊔ F R)
-    -- ih : ∀ a b, R' a b → (rclo clo R ⊔ F (rclo clo R)) a b
-    -- Goal: (rclo clo R ⊔ F (rclo clo R)) x y
+    (h : WRespectfulExt F clo) : Compatible' F (rclo clo) := by
+  intro R
+  -- Let S be the target relation.
+  let S : Rel α := rclo clo R ⊔ F (rclo clo R)
+  -- Show rclo clo (R ⊔ F R) ≤ S by rclo_smallest.
+  apply rclo.rclo_smallest
+  · -- Base: R ⊔ F R ≤ S
+    apply sup_le
+    · exact Rel.le_trans rclo.base_le le_sup_left
+    · exact Rel.le_trans (F.mono' rclo.base_le) le_sup_right
+  · -- Clo-closed: if R' ≤ S then clo R' ≤ S
+    intro R' hR'
+    -- Apply WRespectfulExt with r = rclo clo R, noting S = r ⊔ F r.
+    have h_resp :
+        clo R' ≤ rclo clo (rclo clo R) ⊔ F (rclo clo (rclo clo R)) :=
+      h.respect R' (rclo clo R) hR'
+    have h_shrink : rclo clo (rclo clo R) ≤ rclo clo R := rclo.rclo_rclo
+    have h_sup : rclo clo (rclo clo R) ⊔ F (rclo clo (rclo clo R)) ≤ S := by
+      apply sup_le
+      · exact Rel.le_trans h_shrink le_sup_left
+      · exact Rel.le_trans (F.mono' h_shrink) le_sup_right
+    exact Rel.le_trans h_resp h_sup
 
-    -- Key insight: We use extendedGen F instead of F for the WRespectful application.
-    -- With extendedGen, the condition l ≤ (extendedGen F) r = l ≤ r ⊔ F r is implied by l ≤ r.
-
-    -- Step 1: Apply WRespectful with l = R' and r = rclo clo (R ⊔ F R)
-    -- LE condition: R' ≤ rclo clo (R ⊔ F R) - this is hR'!
-    -- GF condition: R' ≤ F (rclo clo (R ⊔ F R))
-    --   This follows from: R' ≤ rclo clo (R ⊔ F R) ≤ extendedGen F (rclo clo (R ⊔ F R))
-    --   and extracting the F part.
-
-    -- The approach is: show clo R' lands in the F-guarded part of the goal.
-    -- We put the result in F (rclo clo R) using WRespectful.
-
-    -- To apply WRespectful, we need:
-    -- (1) R' ≤ some_r
-    -- (2) R' ≤ F some_r
-    -- Then clo R' ≤ F (rclo clo some_r)
-
-    -- The key: take some_r = rclo clo (R ⊔ F R)
-    -- (1) R' ≤ rclo clo (R ⊔ F R) ✓ (this is hR')
-    -- (2) R' ≤ F (rclo clo (R ⊔ F R)) - need to derive this
-
-    -- For (2): Since R ⊔ F R ≤ rclo clo (R ⊔ F R) (by rclo.base_le)
-    -- F R ≤ F (rclo clo (R ⊔ F R)) (by F.mono)
-    -- And elements of R' come from rclo clo (R ⊔ F R), which means they could be
-    -- from R, from F R (guarded), or from clo applications.
-
-    -- The issue: We need R' ≤ F (rclo clo (R ⊔ F R)) but we only have
-    -- R' ≤ rclo clo (R ⊔ F R). Not all elements of rclo clo (R ⊔ F R) are in
-    -- F (rclo clo (R ⊔ F R)).
-
-    -- Coq's solution: Use the extended generator gf' = id ⊔ gf.
-    -- The wrespectful condition with gf' is: l ≤ r → l ≤ gf' r → clo l ≤ gf' (rclo clo r)
-    -- Since gf' r = r ⊔ F r, the condition l ≤ gf' r is implied by l ≤ r!
-    -- So we only need l ≤ r to conclude clo l ≤ gf' (rclo clo r) = rclo clo r ⊔ F (rclo clo r)
-
-    -- Let's adapt this: use extendedGen F instead of F.
-
-    -- Apply WRespectful with the extended generator interpretation:
-    -- l = R', r = rclo clo (R ⊔ F R)
-    -- Since R' ≤ r (by hR'), we have R' ≤ r ⊔ F r = extendedGen F r
-    -- By the "extended" WRespectful: clo R' ≤ extendedGen F (rclo clo r)
-    --   = rclo clo r ⊔ F (rclo clo r)
-
-    -- But our WRespectful is defined with F, not extendedGen F!
-    -- We need: R' ≤ F (rclo clo (R ⊔ F R)) explicitly.
-
-    -- The fix: directly show clo R' lands in the goal using structural reasoning.
-
-    -- Since R' ≤ rclo clo (R ⊔ F R) and we have IH, we know:
-    -- Every element of R' lands in rclo clo R ⊔ F (rclo clo R).
-
-    -- The goal is to show clo R' x y lands in rclo clo R ⊔ F (rclo clo R).
-    -- Strategy: Show clo R' ≤ rclo clo R ⊔ F (rclo clo R) using closure properties.
-
-    -- Key: rclo clo R ⊔ F (rclo clo R) is "closed" under clo in a specific sense.
-    -- If R' ≤ rclo clo R ⊔ F (rclo clo R) (which is ih), then:
-    -- clo R' ≤ clo (rclo clo R ⊔ F (rclo clo R))
-
-    -- For elements from rclo clo R:
-    -- clo (rclo clo R) ≤ rclo clo (rclo clo R) ≤ rclo clo R (by rclo.rclo_rclo)
-    -- So clo elements from rclo clo R stay in rclo clo R.
-
-    -- For elements from F (rclo clo R):
-    -- Apply WRespectful with l = F (rclo clo R), r = rclo clo R
-    -- Need: F (rclo clo R) ≤ rclo clo R - this is companion_step-like, doesn't hold!
-
-    -- This is the fundamental issue. Without F (rclo clo R) ≤ rclo clo R,
-    -- we cannot show clo (F (rclo clo R)) ≤ rclo clo R ⊔ F (rclo clo R).
-
-    -- The Coq proof avoids this by working with gf' = id ⊔ gf throughout,
-    -- where the compatibility condition becomes self-referential in a good way.
-
-    right  -- Put the result in F (rclo clo R)
-
-    -- We want to show: F (rclo clo R) x y
-    -- Strategy: Apply WRespectful to get clo R' ≤ F (rclo clo ?r), then
-    -- show rclo clo ?r ≤ rclo clo R.
-
-    -- Best choice for ?r: rclo clo (R ⊔ F R)
-    -- Need: R' ≤ rclo clo (R ⊔ F R) ✓ (hR')
-    -- Need: R' ≤ F (rclo clo (R ⊔ F R))
-    -- This gives: clo R' ≤ F (rclo clo (rclo clo (R ⊔ F R)))
-    -- By rclo_rclo: ≤ F (rclo clo (R ⊔ F R))
-    -- Need: F (rclo clo (R ⊔ F R)) ≤ F (rclo clo R)
-    -- This needs: rclo clo (R ⊔ F R) ≤ rclo clo R - FALSE in general!
-
-    -- Alternative: directly construct the proof using the IH and rclo properties.
-
-    -- IH tells us: R' ≤ rclo clo R ⊔ F (rclo clo R)
-    -- We need to show: (clo R') ≤ F (rclo clo R)
-
-    -- For clo R' to be in F (rclo clo R), we need to apply F somehow.
-    -- Since clo R' x y, and clo is not necessarily F-guarded, this doesn't follow.
-
-    -- This requires tracking which elements of R' came from the F-guarded part.
-    -- Classical logic doesn't give us this information.
-
-    sorry
-
-/-- Weak respectfulness implies the closure is contained in the companion.
+/-- Extended weak respectfulness implies the closure is contained in the companion.
 
 This is the key lemma connecting wrespectful to the companion.
 
 **Proof strategy**: Show rclo clo R ≤ companion F R using rclo_smallest.
 This requires showing the companion is clo-closed, which involves:
-- Using WRespectful on guarded inputs (F(companion F R))
+- Using WRespectfulExt on guarded inputs (F(companion F R))
 - Handling unguarded inputs (R) via companion_extensive
 
 **Note**: The proof has a circular dependency that requires either:
@@ -651,9 +497,9 @@ This requires showing the companion is clo-closed, which involves:
 2. A coinductive argument showing companion is clo-closed
 3. A well-founded induction on rclo depth
 
-Currently uses wrespect_compatible' which has the same issue. -/
+Currently uses wrespect_compatible' in the extended form. -/
 theorem wrespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : WRespectful F clo) [ExtCompatImpliesCompat F] :
+    (h : WRespectfulExt F clo) [ExtCompatImpliesCompat F] :
     ∀ R, clo R ≤ companion F R := by
   intro R
   -- Strategy: clo R ≤ rclo clo R ≤ companion F R
@@ -666,7 +512,7 @@ theorem wrespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
 
 /-- Weak respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
 theorem wrespect_uclo (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : WRespectful F clo) [ExtCompatImpliesCompat F] (R : Rel α) :
+    (h : WRespectfulExt F clo) [ExtCompatImpliesCompat F] (R : Rel α) :
     clo R ≤ gupaco_clo F (companion F) R := by
   intro x y hclo
   have h1 : clo R ≤ companion F R := wrespect_companion F h R
@@ -714,104 +560,23 @@ theorem clo_le_prespectClosure (F : MonoRel α) (clo : Rel α → Rel α) (R : R
 
 /-- Paco respectfulness implies the closure is contained in the companion.
 
-This is the key lemma connecting prespectful to the companion.
+Currently routed through the Compatible' → companion chain, which requires:
+- `Compatible' F clo`
+- `ExtCompatImpliesCompat F`
 
-**Proof strategy** (following Coq's prespect0_companion):
-1. Define the closure clo' R = upaco F (R ⊔ clo R)
-2. Show clo' is compatible' via prespect_compatible' (has sorry)
-3. By compatible'_le_companion: clo' R ≤ companion F R
-4. Since clo R ≤ clo' R: clo R ≤ companion F R
-
-The key lemma prespect_compatible' requires showing:
-  upaco F ((R ⊔ F R) ⊔ clo (R ⊔ F R)) ≤ upaco F (R ⊔ clo R) ⊔ F (upaco F (R ⊔ clo R))
-
-This involves properties of paco unfolding and the PRespectful condition. -/
+This keeps the lemma usable in settings where Compatible' is available. -/
 theorem prespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : PRespectful F clo) : ∀ R, clo R ≤ companion F R := by
-  intro R
-  -- Strategy: clo R ≤ prespectClosure F clo R ≤ companion F R
-  -- First inequality by clo_le_prespectClosure
-  -- Second requires prespectClosure to be compatible'
-
-  -- For now, use a direct approach via paco properties
-  -- paco F (R ⊔ clo R) ≤ companion F (R ⊔ clo R) follows from
-  -- the fact that paco F S ≤ gfpClo S ≤ companion F S
-
-  -- Show clo R ≤ companion F R via the gfpClo route
-  -- gfpClo R = gfp (X ↦ R ⊔ F X) = paco F R
-
-  -- Alternative: show clo R ≤ cpn F R directly by finding a compatible closure
-  -- The prespectClosure might be compatible (needs verification)
-
-  -- Key insight: upaco F S ≤ cpn F S
-  -- Because: paco F S ⊔ S ≤ cpn F S (paco F S ≤ cpn F S by cpn containing gfp, S ≤ cpn F S by base)
-
-  have h_upaco_le_cpn : ∀ S, upaco F S ≤ cpn F S := by
-    intro S x y hup
-    cases hup with
-    | inl hp =>
-      -- hp : paco F S x y
-      -- paco F S = gfp (X ↦ S ⊔ F X) = gfpClo S
-      -- Need: gfpClo S ≤ cpn F S
-      -- gfpClo S is a fixed point of X ↦ S ⊔ F X
-      -- cpn F S satisfies: S ≤ cpn F S (base) and F (cpn F S) ≤ cpn F S (step)
-      -- So cpn F S is a post-fixed point of X ↦ S ⊔ F X
-      -- By Knaster-Tarski, gfp ≤ cpn F S
-
-      -- Actually, paco F S = OrderHom.gfp (gfpCloGen S)
-      -- where gfpCloGen S X = S ⊔ F X
-      -- The gfp property: X ≤ S ⊔ F X → X ≤ paco F S
-      -- And paco F S ≤ S ⊔ F (paco F S)
-
-      -- To show paco F S ≤ cpn F S:
-      -- Use coinduction: show paco F S is a post-fixpoint of something that cpn F absorbs
-      -- paco F S ≤ S ⊔ F (paco F S) (by paco_unfold)
-      -- If S ≤ cpn F S (by base) and F (cpn F S) ≤ cpn F S (by step),
-      -- then paco F S ≤ S ⊔ F (paco F S) ≤ cpn F S ⊔ F (cpn F S)
-
-      -- This requires showing F (paco F S) ≤ F (cpn F S) and paco F S ≤ cpn F S
-      -- The second is what we're trying to prove - circular!
-
-      -- Alternative: use paco_coind to show paco F S ≤ cpn F S by coinduction
-      -- Witness: cpn F S
-      -- Need: cpn F S ≤ S ⊔ F (cpn F S)
-      -- By base: S ≤ cpn F S, so S ≤ cpn F S
-      -- But we need cpn F S ≤ S ⊔ F (cpn F S), not S ≤ cpn F S!
-
-      -- Actually, for paco_coind with witness W:
-      -- If W ≤ gfpCloGen S W = S ⊔ F W, then W ≤ paco F S
-      -- But we want paco F S ≤ cpn F S, not the other direction.
-
-      -- Let me try a different approach: construct paco F S as a compatible closure
-      sorry
-    | inr hr =>
-      -- hr : S x y
-      exact cpn.base x y hr
-
-  -- Now: clo R ≤ upaco F (R ⊔ clo R) ≤ cpn F (R ⊔ clo R)
-  -- Need: cpn F (R ⊔ clo R) ≤ cpn F R
-  -- By cpn_mono: (R ⊔ clo R) ≤ R would give this, but that's backwards!
-
-  -- Alternative: use cpn idempotence and absorption
-  -- cpn F (R ⊔ clo R) contains both R and clo R
-  -- We need clo R ≤ cpn F R
-
-  -- The PRespectful condition says:
-  -- clo l ≤ paco F (r ⊔ clo r) when l ≤ r and l ≤ F r
-
-  -- For clo R, we'd need to find r such that:
-  -- R ≤ r and R ≤ F r and paco F (r ⊔ clo r) ≤ cpn F R
-
-  -- This is still the fundamental challenge: R ≤ F r doesn't hold for arbitrary R
-
-  sorry
+    (h : PRespectful F clo) (h_compat' : Compatible' F clo)
+    [ExtCompatImpliesCompat F] : ∀ R, clo R ≤ companion F R :=
+  compatible'_le_companion F h.mon h_compat'
 
 /-- Paco respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
 theorem prespect_uclo (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : PRespectful F clo) (R : Rel α) :
+    (h : PRespectful F clo) (h_compat' : Compatible' F clo)
+    [ExtCompatImpliesCompat F] (R : Rel α) :
     clo R ≤ gupaco_clo F (companion F) R := by
   intro x y hclo
-  have h1 : clo R ≤ companion F R := prespect_companion F h R
+  have h1 : clo R ≤ companion F R := prespect_companion F h h_compat' R
   have h2 : companion F R = gupaco_clo F (companion F) R := (companion_gupaco_eq F R).symm
   rw [← h2]
   exact h1 x y hclo
@@ -834,55 +599,23 @@ structure GRespectful (F : MonoRel α) (clo : Rel α → Rel α) : Prop where
 
 /-- Generalized respectfulness implies the closure is contained in the companion.
 
-This is the key lemma connecting grespectful to the companion.
+Currently routed through the Compatible' → companion chain, which requires:
+- `Compatible' F clo`
+- `ExtCompatImpliesCompat F`
 
-**Proof strategy** (following Coq's grespect0_companion):
-1. Define a closure operator using GRespectful
-2. Show it's compatible' (via grespect_compatible')
-3. Use compatible'_le_companion to conclude clo ≤ companion
-
-**Note**: This proof depends on `compatible'_le_companion`, which in turn depends on
-`cpn_eq_cpn_extendedGen`. The latter requires `ExtCompatImpliesCompat F`, so completing
-this proof ultimately depends on establishing that assumption.
-
-For guarded inputs (l = F T where T = companion F R):
-- GRespectful gives: clo (F T) ≤ rclo (companion F) (F (rclo (clo ⊔ gupaco_clo F (companion F)) T))
-- Key absorption: rclo (companion F) S ≤ companion F S (by cpn.rclo_le)
-- gupaco_clo F (companion F) R = companion F R (by companion_gupaco_eq)
-- F (companion F R) ≤ companion F R (by companion_step)
-
-The challenge is showing clo R ≤ companion F R for arbitrary R (not just guarded inputs).
-The GRespectful condition only applies when l ≤ r AND l ≤ F r, which doesn't hold for
-arbitrary R. -/
+This keeps the lemma usable in settings where Compatible' is available. -/
 theorem grespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : GRespectful F clo) : ∀ R, clo R ≤ companion F R := by
-  intro R
-  -- The proof structure mirrors prespect_companion:
-  -- 1. GRespectful only applies to F-guarded inputs (l ≤ F r)
-  -- 2. For arbitrary R, we can't directly apply GRespectful
-  -- 3. Need to either:
-  --    a) Show a closure operator is compatible', then use compatible'_le_companion
-  --    b) Use companion properties directly with bootstrapping
-  --
-  -- Bootstrapping approach:
-  -- - R ≤ companion F R (by companion_extensive)
-  -- - clo R ≤ clo (companion F R) (by monotonicity)
-  -- - Need: clo (companion F R) ≤ companion F R
-  --
-  -- For clo (companion F R):
-  -- - companion F R is NOT necessarily F-guarded, so GRespectful doesn't directly apply
-  -- - BUT companion F R contains F (companion F R) via companion_step
-  --
-  -- This proof remains incomplete pending an `ExtCompatImpliesCompat F` hypothesis,
-  -- which underpins the Compatible' → companion chain.
-  sorry
+    (h : GRespectful F clo) (h_compat' : Compatible' F clo)
+    [ExtCompatImpliesCompat F] : ∀ R, clo R ≤ companion F R :=
+  compatible'_le_companion F h.mon h_compat'
 
 /-- Generalized respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
 theorem grespect_uclo (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : GRespectful F clo) (R : Rel α) :
+    (h : GRespectful F clo) (h_compat' : Compatible' F clo)
+    [ExtCompatImpliesCompat F] (R : Rel α) :
     clo R ≤ gupaco_clo F (companion F) R := by
   intro x y hclo
-  have h1 : clo R ≤ companion F R := grespect_companion F h R
+  have h1 : clo R ≤ companion F R := grespect_companion F h h_compat' R
   have h2 : companion F R = gupaco_clo F (companion F) R := (companion_gupaco_eq F R).symm
   rw [← h2]
   exact h1 x y hclo

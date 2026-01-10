@@ -23,6 +23,7 @@ Paco.lean (root)
     ├── GPacoClo.lean    -- GPaco with closures
     ├── WCompat.lean     -- Weak compatibility
     ├── Closures.lean    -- Standard closures
+    ├── Respectful.lean  -- Respectfulness
     └── Compose.lean     -- Closure composition
 ```
 
@@ -126,6 +127,13 @@ This module defines standard closure operators. These include `reflClosure`, `sy
 ### Paco/UpTo/Compose.lean
 
 This module proves composition lemmas for closures. Composing compatible closures yields a compatible closure. Idempotence lemmas simplify nested applications.
+
+
+### Paco/UpTo/Respectful.lean
+
+This module defines wrespectful, prespectful, and grespectful conditions and connects them
+to the companion. The companion lemmas for PRespectful and GRespectful currently route through
+`Compatible'` plus `ExtCompatImpliesCompat` assumptions to stay usable in concrete settings.
 
 ## Key Types
 
