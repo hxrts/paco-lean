@@ -1,16 +1,101 @@
 import Paco.UpTo.Compat
 import Paco.UpTo.Closures
+import Paco.UpTo.WCompat
 
 /-!
-# Closure Composition Lemmas
+# Closure Composition and Union Lemmas
 
-Systematic composition results for common closures.
-This module provides lemmas about how closures interact when composed.
+Systematic composition and union results for closures.
+This module provides lemmas about how closures interact when composed or combined.
 -/
 
 namespace Paco
 
 variable {α : Type*}
+
+/-!
+## Closure Union
+
+The union of two closure operators applies both and takes the union of results.
+-/
+
+/-- Union of two closure operators -/
+def cloUnion (clo₁ clo₂ : Rel α → Rel α) : Rel α → Rel α :=
+  fun R => clo₁ R ⊔ clo₂ R
+
+/-- Notation for closure union -/
+scoped infixl:65 " ⊔ᶜ " => cloUnion
+
+/-- Closure union is monotone when both components are monotone -/
+theorem cloMono_union {clo₁ clo₂ : Rel α → Rel α}
+    (h₁ : CloMono clo₁) (h₂ : CloMono clo₂) :
+    CloMono (clo₁ ⊔ᶜ clo₂) := by
+  intro R S hRS x y h
+  cases h with
+  | inl h₁r => left; exact h₁ R S hRS x y h₁r
+  | inr h₂r => right; exact h₂ R S hRS x y h₂r
+
+/-- Left component is contained in closure union -/
+theorem clo_le_cloUnion_left (clo₁ clo₂ : Rel α → Rel α) (R : Rel α) :
+    clo₁ R ≤ (clo₁ ⊔ᶜ clo₂) R :=
+  fun _ _ h => Or.inl h
+
+/-- Right component is contained in closure union -/
+theorem clo_le_cloUnion_right (clo₁ clo₂ : Rel α → Rel α) (R : Rel α) :
+    clo₂ R ≤ (clo₁ ⊔ᶜ clo₂) R :=
+  fun _ _ h => Or.inr h
+
+/-- gupaco_clo is monotone in the closure operator.
+
+If clo₁ ≤ clo₂ pointwise, then gupaco_clo F clo₁ R ≤ gupaco_clo F clo₂ R.
+This is the key lemma for proving wcompat_union. -/
+theorem gupaco_clo_mono_clo (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
+    (h_clo : ∀ R, clo₁ R ≤ clo₂ R) (R : Rel α) :
+    gupaco_clo F clo₁ R ≤ gupaco_clo F clo₂ R := by
+  -- gupaco_clo F clo R = rclo clo (paco (composeRclo F clo) R ⊔ R)
+  -- Need to show both:
+  -- 1. rclo clo₁ ≤ rclo clo₂ (via rclo.mono_clo)
+  -- 2. paco (composeRclo F clo₁) R ≤ paco (composeRclo F clo₂) R (via paco_mon_gen)
+  have h_rclo_clo_le : ∀ S, rclo clo₁ S ≤ rclo clo₂ S := fun S => rclo.mono_clo h_clo
+  have h_paco_le : paco (composeRclo F clo₁) R ≤ paco (composeRclo F clo₂) R := by
+    apply paco_mon_gen
+    · intro S x y hFrclo
+      simp only [composeRclo_def] at hFrclo ⊢
+      exact F.mono' (h_rclo_clo_le S) x y hFrclo
+    · exact Rel.le_refl R
+  simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+  intro x y hrclo
+  -- hrclo : rclo clo₁ (paco (composeRclo F clo₁) R ⊔ R) x y
+  -- Goal: rclo clo₂ (paco (composeRclo F clo₂) R ⊔ R) x y
+  have h_inner_le : paco (composeRclo F clo₁) R ⊔ R ≤ paco (composeRclo F clo₂) R ⊔ R :=
+    sup_le_sup_right h_paco_le R
+  have h_rclo_inner : rclo clo₁ (paco (composeRclo F clo₁) R ⊔ R) ≤
+                      rclo clo₁ (paco (composeRclo F clo₂) R ⊔ R) := rclo.mono h_inner_le
+  have h_rclo_outer : rclo clo₁ (paco (composeRclo F clo₂) R ⊔ R) ≤
+                      rclo clo₂ (paco (composeRclo F clo₂) R ⊔ R) := h_rclo_clo_le _
+  exact h_rclo_outer x y (h_rclo_inner x y hrclo)
+
+/-- Union of weakly compatible closures is weakly compatible. -/
+theorem wcompat_union (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
+    (h₁ : WCompatible F clo₁) (h₂ : WCompatible F clo₂) :
+    WCompatible F (clo₁ ⊔ᶜ clo₂) := by
+  intro R x y h
+  cases h with
+  | inl h₁r =>
+    -- h₁r : clo₁ (F R) x y
+    -- From h₁: clo₁ (F R) ≤ F (gupaco_clo F clo₁ R)
+    have h_step := h₁ R x y h₁r
+    -- h_step : F (gupaco_clo F clo₁ R) x y
+    -- Need: F (gupaco_clo F (clo₁ ⊔ᶜ clo₂) R) x y
+    have h_mono : gupaco_clo F clo₁ R ≤ gupaco_clo F (clo₁ ⊔ᶜ clo₂) R :=
+      gupaco_clo_mono_clo F (fun S => clo_le_cloUnion_left clo₁ clo₂ S) R
+    exact F.mono' h_mono x y h_step
+  | inr h₂r =>
+    -- h₂r : clo₂ (F R) x y
+    have h_step := h₂ R x y h₂r
+    have h_mono : gupaco_clo F clo₂ R ≤ gupaco_clo F (clo₁ ⊔ᶜ clo₂) R :=
+      gupaco_clo_mono_clo F (fun S => clo_le_cloUnion_right clo₁ clo₂ S) R
+    exact F.mono' h_mono x y h_step
 
 /-!
 ## Composition Monotonicity

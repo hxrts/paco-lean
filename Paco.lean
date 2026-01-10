@@ -1,5 +1,6 @@
 import Paco.Basic
 import Paco.Companion
+import Paco.Compat
 import Paco.GPaco
 import Paco.Examples.Basic
 import Paco.Tactic
@@ -25,6 +26,7 @@ paco allows accumulating hypotheses as the proof progresses.
 - `Paco.GPaco`: Generalized paco with guarded parameters (`gpaco`, `gupaco`)
 - `Paco.Tactic`: Tactics for ergonomic paco proofs
 - `Paco.UpTo`: Up-to techniques with closure operators
+- `Paco.Compat`: Coq paco naming compatibility aliases
 
 ## Usage
 

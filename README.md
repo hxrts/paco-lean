@@ -38,6 +38,7 @@ If you want paco-based proofs for QPF/ITree, use the integration package `paco-q
 - **`Paco.Coind`**: Ergonomic coinduction wrappers (`coind`, `gcoind`, `upto_coind`)
 - **`Paco.UpTo`**: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
 - **`Paco.Companion`**: Companion construction (greatest compatible closure)
+- **`Paco.Compat`**: Coq paco naming compatibility aliases
 
 ## Installation
 
@@ -80,6 +81,8 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 | `paco_bot` | `paco F ⊥ = gfp F` |
 | `gpaco_clo_coind` | Coinduction principle for gpaco with closures |
 | `gpaco_clo_gupaco` | Gupaco absorption into gpaco (accumulation) |
+| `cloMono_union` | Union of monotone closures is monotone |
+| `wcompat_union` | Union of weakly compatible closures is weakly compatible |
 
 ## Documentation
 

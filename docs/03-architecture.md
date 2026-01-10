@@ -12,6 +12,7 @@ Paco.lean (root)
 ├── Paco/GPaco.lean      -- Generalized paco
 ├── Paco/Tactic.lean     -- Proof tactics
 ├── Paco/Companion.lean  -- Companion construction
+├── Paco/Compat.lean     -- Coq naming aliases
 ├── Paco/Coind.lean      -- Coinduction wrappers
 ├── Paco/Simp.lean       -- Simp lemmas
 ├── Paco/Examples/       -- Example proofs
@@ -66,6 +67,16 @@ The `pstep` tactic moves into the paco side of upaco. The `pbase` tactic uses th
 This module provides ergonomic wrappers for coinduction. The `coind` theorem hides plumbing for simple proofs. The `coind_acc` theorem handles accumulators.
 
 For gpaco and up-to reasoning, `gcoind`, `upto_coind`, and `companion_coind` provide entry points with reduced boilerplate.
+
+### Paco/Compat.lean
+
+This module provides naming aliases for users familiar with the Coq paco library. It maps Coq names to their Lean equivalents.
+
+| Coq Name           | Lean Name          | Description                     |
+|--------------------|--------------------|---------------------------------|
+| `paco_mult`        | `paco_acc`         | `paco F (paco F r) ≤ paco F r`  |
+| `paco_mult_strong` | `paco_acc_upaco`   | `paco F (upaco F r) ≤ paco F r` |
+| `gpaco_mult`       | `gpaco_clo_gupaco` | Gupaco absorption               |
 
 ### Paco/Simp.lean
 

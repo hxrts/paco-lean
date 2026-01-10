@@ -56,4 +56,38 @@ theorem rclo_compatible (F : MonoRel α) {clo : Rel α → Rel α}
 theorem rclo_mono (clo : Rel α → Rel α) : CloMono (rclo clo) :=
   fun _ _ h => rclo.mono h
 
+/-!
+## Extended Generator and Compatible'
+-/
+
+/-- The extended generator (id ⊔ F) as a MonoRel.
+
+This is the key construction for defining compatibility with respect to
+the "relaxed" generator that includes the identity. In Coq paco, this is `gf'`. -/
+def extendedGen (F : MonoRel α) : MonoRel α where
+  F := fun R => R ⊔ F R
+  mono := fun _ _ hRS => sup_le_sup hRS (F.mono' hRS)
+
+theorem extendedGen_def (F : MonoRel α) (R : Rel α) : extendedGen F R = R ⊔ F R := rfl
+
+/-- Weak compatibility (Compatible'): clo (R ⊔ F R) ≤ clo R ⊔ F (clo R).
+
+This is equivalent to being compatible with the extended generator (id ⊔ F).
+It's weaker than F-compatibility because it allows elements to stay in the
+identity part rather than requiring them to be in the F part. -/
+def Compatible' (F : MonoRel α) (clo : Rel α → Rel α) : Prop :=
+  ∀ R, clo (R ⊔ F R) ≤ clo R ⊔ F (clo R)
+
+/-- Compatible' F clo is equivalent to Compatible (extendedGen F) clo -/
+theorem compatible'_iff_compat_extendedGen (F : MonoRel α) (clo : Rel α → Rel α) :
+    Compatible' F clo ↔ Compatible (extendedGen F) clo := by
+  constructor
+  · intro h R
+    -- h : clo (R ⊔ F R) ≤ clo R ⊔ F (clo R)
+    -- Goal: clo (extendedGen F R) ≤ extendedGen F (clo R)
+    -- i.e., clo (R ⊔ F R) ≤ clo R ⊔ F (clo R)
+    exact h R
+  · intro h R
+    exact h R
+
 end Paco

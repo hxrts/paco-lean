@@ -80,6 +80,29 @@ theorem rclo_le {clo : Rel α → Rel α} (h_mono : CloMono clo) (h_compat : Com
     have h3 : cpn F (cpn F R) ≤ cpn F R := cpn_cpn
     exact h3 _ _ (h2 _ _ (h1 _ _ hcloR'))
 
+/-- cpn is closed under F application: F (cpn F R) ≤ cpn F R.
+
+This is a key lemma (cpn_step in Coq). The proof shows that F ∘ cpn F is a
+compatible monotone closure, so by cpn.greatest, (F ∘ cpn F) R ≤ cpn F R. -/
+theorem step : F (cpn F R) ≤ cpn F R := by
+  -- Define clo = F ∘ cpn F
+  let clo : Rel α → Rel α := fun X => F (cpn F X)
+  -- Show clo is monotone
+  have h_mono : CloMono clo := fun R S hRS => F.mono' (cpn_cloMono R S hRS)
+  -- Show clo is compatible: clo (F R) ≤ F (clo R)
+  -- clo (F R) = F (cpn F (F R)) ≤ F (F (cpn F R)) = F (clo R)
+  -- This uses cpn.compat: cpn F (F R) ≤ F (cpn F R)
+  have h_compat : Compatible F clo := by
+    intro R' x y hclo
+    -- hclo : clo (F R') x y = F (cpn F (F R')) x y
+    -- Goal: F (clo R') x y = F (F (cpn F R')) x y
+    -- By cpn.compat: cpn F (F R') ≤ F (cpn F R')
+    -- By F.mono': F (cpn F (F R')) ≤ F (F (cpn F R'))
+    have h_cpn_compat : cpn F (F R') ≤ F (cpn F R') := compat R'
+    exact F.mono' h_cpn_compat x y hclo
+  -- By cpn.greatest: clo R ≤ cpn F R
+  exact greatest h_mono h_compat
+
 end cpn
 
 end Paco

@@ -200,6 +200,35 @@ theorem compatible_compose (F : MonoRel α)
 
 Composing compatible closures yields a compatible closure. This allows building custom closures from primitives.
 
+## Closure Union
+
+Two closures can be combined using union. The result applies both closures and takes the union.
+
+```lean
+def cloUnion (clo₁ clo₂ : Rel α → Rel α) : Rel α → Rel α :=
+  fun R => clo₁ R ⊔ clo₂ R
+
+infixl:65 " ⊔ᶜ " => cloUnion
+```
+
+The union of monotone closures is monotone.
+
+```lean
+theorem cloMono_union {clo₁ clo₂ : Rel α → Rel α}
+    (h₁ : CloMono clo₁) (h₂ : CloMono clo₂) :
+    CloMono (clo₁ ⊔ᶜ clo₂)
+```
+
+When both closures are weakly compatible with F, their union is also weakly compatible.
+
+```lean
+theorem wcompat_union (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
+    (h₁ : WCompatible F clo₁) (h₂ : WCompatible F clo₂) :
+    WCompatible F (clo₁ ⊔ᶜ clo₂)
+```
+
+Closure union is useful when you want to reason up-to multiple properties simultaneously.
+
 ### Idempotence
 
 Several closures are idempotent. Applying them twice is the same as applying once.

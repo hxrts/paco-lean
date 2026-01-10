@@ -69,4 +69,12 @@ theorem companion_gupaco_eq (F : MonoRel α) (R : Rel α) :
     gupaco_clo F (companion F) R = companion F R := by
   simpa [companion] using cpn.gupaco_eq (F := F) (R := R)
 
+/-- The companion is closed under F application: F (companion F R) ≤ companion F R.
+
+This is a key property (cpn_step in Coq) that enables coinductive reasoning
+about the companion. -/
+theorem companion_step (F : MonoRel α) (R : Rel α) :
+    F (companion F R) ≤ companion F R :=
+  cpn.step
+
 end Paco

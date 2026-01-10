@@ -1,5 +1,6 @@
 import Paco.Basic
 import Paco.GPaco
+import Paco.UpTo
 
 /-!
 # Paco Tactics
@@ -234,5 +235,50 @@ Given `h : r ≤ s`, transforms `⊢ upaco F s x y` from `⊢ upaco F r x y`.
 -/
 macro "upaco_mon" h:term : tactic =>
   `(tactic| (apply Paco.upaco_mon _ $h))
+
+/-!
+## GPaco with Closures Tactics
+
+These tactics work with `gpaco_clo` and `gupaco_clo` for up-to reasoning.
+-/
+
+/-- `ginit` initializes a gpaco proof by embedding paco into gupaco_clo with companion.
+
+Transforms `⊢ paco F r x y` into `⊢ gupaco_clo F (companion F) r x y`.
+
+This is the entry point for up-to proofs using the companion closure.
+-/
+macro "ginit" : tactic =>
+  `(tactic| (apply Paco.paco_le_gpaco_clo))
+
+/-- `gstep` takes one step in a gpaco_clo proof by applying F.
+
+When the goal is `⊢ gpaco_clo F clo r rg x y`, `gstep` allows you to make
+progress by providing `F (gupaco_clo F clo r) x y ∨ r x y`.
+-/
+macro "gstep" : tactic =>
+  `(tactic| (apply Paco.rclo.base; left; apply Paco.paco_fold))
+
+/-- `gbase` uses the base relation in a gpaco_clo proof.
+
+When the goal is `⊢ gpaco_clo F clo r rg x y`, `gbase` lets you prove
+`r x y` directly.
+-/
+macro "gbase" : tactic =>
+  `(tactic| (apply Paco.r_le_gpaco_clo))
+
+/-- `gfinal` concludes a gpaco_clo proof by showing it reduces to standard paco.
+
+Applies `gpaco_clo_final` which requires compatibility of the closure.
+-/
+macro "gfinal" : tactic =>
+  `(tactic| (apply Paco.gpaco_clo_final))
+
+/-- `gclo` applies the closure operator in a gpaco_clo proof.
+
+This lets you use the up-to technique by applying the closure.
+-/
+macro "gclo" : tactic =>
+  `(tactic| (apply Paco.rclo.clo))
 
 end Paco

@@ -5,6 +5,7 @@ import Paco.UpTo.GPacoClo
 import Paco.UpTo.WCompat
 import Paco.UpTo.Closures
 import Paco.UpTo.Compose
+import Paco.UpTo.Respectful
 
 /-!
 # Up-To Techniques for Paco (GPaco with Closures)
@@ -38,6 +39,8 @@ The gpaco framework extends paco by:
 - `Paco.UpTo.GPacoClo`: GPaco with closure, coinduction principles
 - `Paco.UpTo.WCompat`: Weak compatibility theory and companion integration
 - `Paco.UpTo.Closures`: Common up-to closures (reflexive, symmetric, etc.)
+- `Paco.UpTo.Compose`: Closure composition and union
+- `Paco.UpTo.Respectful`: Respectfulness (weaker than compatibility)
 
 ## References
 
