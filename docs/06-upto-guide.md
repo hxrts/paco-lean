@@ -192,13 +192,26 @@ theorem companion_mono (F : MonoRel α) :
 The companion is monotone.
 
 
-The companion is also closed under relational composition when `transClosure` is compatible:
+The companion is also closed under relational composition when `F` is
+composition-compatible. The ergonomic workflow is:
+1) prove `F` preserves transitive closure
+2) derive `CompCompatible F`
+3) use `companion_compose` without extra arguments
 
 ```lean
+/-- If F preserves transitive closure, then transClosure is compatible. --/
+theorem transClosure_compatible_of_preserve (F : MonoRel α)
+    (h : ∀ R, F (transClosure R) ≤ transClosure (F R)) :
+    Compatible F transClosure
+
+/-- F is compatible with relational composition. --/
+class CompCompatible (F : MonoRel α) : Prop :=
+  (comp : Compatible F transClosure)
+
+-- companion closed under composition
 theorem companion_compose (F : MonoRel α) (R : Rel α) [CompCompatible F] :
     ∀ a b c, companion F R a b → companion F R b c → companion F R a c
 ```
-
 
 ### Using the Companion
 
