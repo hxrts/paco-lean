@@ -70,6 +70,11 @@ theorem companion_gupaco_eq (F : MonoRel α) (R : Rel α) :
     gupaco_clo F (companion F) R = companion F R := by
   simpa [companion] using cpn.gupaco_eq (F := F) (R := R)
 
+
+/-- F is compatible with relational composition (transitive closure). --/
+class CompCompatible (F : MonoRel α) : Prop :=
+  (comp : Compatible F (transClosure (α := α)))
+
 /-- The companion is closed under F application: F (companion F R) ≤ companion F R.
 
 This is a key property (cpn_step in Coq) that enables coinductive reasoning
@@ -82,8 +87,7 @@ theorem companion_step (F : MonoRel α) (R : Rel α) :
 
 Assumes `transClosure` is compatible with `F`, so the companion absorbs the
 transitive closure of itself and is therefore closed under composition. -/
-theorem companion_compose (F : MonoRel α) (R : Rel α)
-    (h_trans_compat : Compatible F (transClosure (α := α))) :
+theorem companion_compose (F : MonoRel α) (R : Rel α) [CompCompatible F] :
     ∀ a b c, companion F R a b → companion F R b c → companion F R a c := by
   intro a b c hab hbc
   have h_trans : transClosure (companion F R) a c :=
@@ -91,7 +95,7 @@ theorem companion_compose (F : MonoRel α) (R : Rel α)
   have h_le : transClosure (companion F R) ≤ companion F R := by
     have h1 : transClosure (companion F R) ≤ companion F (companion F R) :=
       companion_greatest (F := F) (R := companion F R)
-        (h_mono := transClosure_mono) (h_compat := h_trans_compat)
+        (h_mono := transClosure_mono) (h_compat := (CompCompatible.comp (F := F)))
     exact Rel.le_trans h1 (companion_idem (F := F) (R := R))
   exact h_le a c h_trans
 

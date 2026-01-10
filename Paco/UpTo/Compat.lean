@@ -139,4 +139,9 @@ instance inflationary_extendedGen (F : MonoRel α) : Inflationary (extendedGen F
     intro R
     exact le_sup_left⟩
 
+
+/-- extendedGen F satisfies ExtCompatImpliesCompat via inflationary. --/
+instance extCompat_of_extendedGen (F : MonoRel α) : ExtCompatImpliesCompat (extendedGen F) := by
+  infer_instance
+
 end Paco

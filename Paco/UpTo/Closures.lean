@@ -100,11 +100,20 @@ theorem congClosure_mono (f : α → α) : CloMono (congClosure f) := by
   exact ⟨a, b, hRS a b hR, hxa, hyb⟩
 
 /-!
+
 ## Compatibility Results
 
 Note: Compatibility of these closures depends on the structure of F.
 The following are conditional results that hold when F has certain properties.
 -/
+
+/-- If F preserves transitive closure, then transClosure is compatible with F. -/
+theorem transClosure_compatible_of_preserve (F : MonoRel α)
+    (h : ∀ R, F (transClosure R) ≤ transClosure (F R)) :
+    Compatible F (transClosure (α := α)) := by
+  intro R x y hTR
+  exact h R x y hTR
+
 
 /-- reflClosure is compatible if F is reflexive (F R x x for all x when R is reflexive) -/
 theorem reflClosure_compatible (F : MonoRel α)

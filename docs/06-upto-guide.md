@@ -195,8 +195,7 @@ The companion is monotone.
 The companion is also closed under relational composition when `transClosure` is compatible:
 
 ```lean
-theorem companion_compose (F : MonoRel α) (R : Rel α)
-    (h_trans_compat : Compatible F transClosure) :
+theorem companion_compose (F : MonoRel α) (R : Rel α) [CompCompatible F] :
     ∀ a b c, companion F R a b → companion F R b c → companion F R a c
 ```
 
