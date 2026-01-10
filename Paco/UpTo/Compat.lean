@@ -90,4 +90,53 @@ theorem compatible'_iff_compat_extendedGen (F : MonoRel α) (clo : Rel α → Re
   · intro h R
     exact h R
 
+/-!
+## Optional Restriction for Companion Equality
+
+The lemma `cpn (extendedGen F) ≤ cpn F` is false in general (counterexamples exist
+when extendedGen is identity and closures can introduce elements from ⊤).
+To recover the Coq PACO-style equality in Lean, we expose the following
+assumption: every closure compatible with the extended generator is already
+compatible with F.
+
+This is a property of F (and the class of closures you allow) and can be
+discharged in specialized settings.
+-/
+
+/-- Assumption: extendedGen-compatible closures are F-compatible. -/
+class ExtCompatImpliesCompat (F : MonoRel α) : Prop :=
+  (h : ∀ clo, CloMono clo → Compatible (extendedGen F) clo → Compatible F clo)
+
+/-!
+## Sufficient Conditions
+
+The following conditions provide concrete instances of ExtCompatImpliesCompat.
+-/
+
+/-- Inflationary generators: R ≤ F R for all R. -/
+class Inflationary (F : MonoRel α) : Prop :=
+  (h : ∀ R, R ≤ F R)
+
+/-- If F is inflationary, then any extendedGen-compatible closure is F-compatible. -/
+instance extCompat_of_inflationary (F : MonoRel α) [Inflationary F] :
+    ExtCompatImpliesCompat F :=
+  ⟨by
+    intro clo h_mono h_ext R x y hclo
+    -- clo (F R) ≤ clo (R ⊔ F R) ≤ clo R ⊔ F (clo R)
+    have h1 : clo (F R) ≤ clo (R ⊔ F R) :=
+      h_mono (F R) (R ⊔ F R) le_sup_right
+    have h2 : clo (R ⊔ F R) ≤ clo R ⊔ F (clo R) := h_ext R
+    -- clo R ⊔ F (clo R) ≤ F (clo R) since clo R ≤ F (clo R)
+    have h3 : clo R ⊔ F (clo R) ≤ F (clo R) := by
+      apply sup_le
+      · exact Inflationary.h (F := F) (clo R)
+      · exact Rel.le_refl _
+    exact h3 x y (h2 x y (h1 x y hclo))⟩
+
+/-- extendedGen is inflationary. -/
+instance inflationary_extendedGen (F : MonoRel α) : Inflationary (extendedGen F) :=
+  ⟨by
+    intro R
+    exact le_sup_left⟩
+
 end Paco

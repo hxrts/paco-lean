@@ -9,7 +9,8 @@ lemmas for working with cpn and extendedGen.
 
 ## The Problem
 
-The key theorem `cpn_extendedGen_F_compat` (in Respectful.lean) states:
+The key theorem `cpn_extendedGen_F_compat` (in Respectful.lean) states (under
+the `ExtCompatImpliesCompat F` assumption):
   `cpn (extendedGen F) (F R) ≤ F (cpn (extendedGen F) R)`
 
 This says: starting from F-guarded input and closing under ext-compatible
@@ -107,7 +108,7 @@ theorem tmp_property_ext (F : MonoRel α) (R : Rel α) :
 /-!
 ## Analysis of the Proof Gap
 
-For `cpn_extendedGen_F_compat`, we need:
+For `cpn_extendedGen_F_compat`, we need (under `ExtCompatImpliesCompat F`):
   `cpn ext (F R) ≤ F (cpn ext R)`
 
 What we CAN prove:

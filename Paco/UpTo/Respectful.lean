@@ -30,10 +30,10 @@ The main theorem chain is:
 1. `compatible'_iff_compat_extended`: Compatible' F clo ↔ Compatible (extendedGen F) clo
 2. `cpn_extendedGen_compat`: cpn F is (extendedGen F)-compatible (PROVEN)
 3. `cpn_le_cpn_extendedGen`: cpn F ≤ cpn (extendedGen F) (PROVEN)
-4. `cpn_extendedGen_F_compat`: cpn (extendedGen F) is F-compatible (has sorry)
-5. `cpn_extendedGen_le_cpn`: cpn (extendedGen F) ≤ cpn F (depends on above)
-6. `cpn_eq_cpn_extendedGen`: cpn F = cpn (extendedGen F) (depends on above)
-7. `compatible'_le_companion`: Compatible' closures ≤ companion (PROVEN given above)
+4. `cpn_extendedGen_le_cpn`: cpn (extendedGen F) ≤ cpn F (requires ExtCompatImpliesCompat)
+5. `cpn_eq_cpn_extendedGen`: cpn F = cpn (extendedGen F) (requires ExtCompatImpliesCompat)
+6. `cpn_extendedGen_F_compat`: cpn (extendedGen F) is F-compatible (via equality + assumption)
+7. `compatible'_le_companion`: Compatible' closures ≤ companion (requires ExtCompatImpliesCompat)
 
 ## Proof Status
 
@@ -42,22 +42,23 @@ The main theorem chain is:
 - `cpn_extendedGen_compat`: cpn F is (extendedGen F)-compatible
 - `cpn_le_cpn_extendedGen`: cpn F ≤ cpn (extendedGen F)
 - `cpn_extendedGen_fixed`: cpn F R is a fixed point of extendedGen F
-- `compatible'_le_companion`: Compatible' closures ≤ companion
+- `compatible'_le_companion`: Compatible' closures ≤ companion (requires ExtCompatImpliesCompat)
 - `compat_wrespect`: Compatibility implies weak respectfulness
 - `wrespect_companion`: WRespectful implies clo ≤ companion (depends on wrespect_compatible')
 - `wrespect_uclo`, `prespect_uclo`, `grespect_uclo`: UClo lemmas
 - `prespectClosure_mono`, `clo_le_prespectClosure`: Helper lemmas for PRespectful
 
 **Open (contain sorry):**
-- `cpn_extendedGen_F_compat` (line ~213): cpn (extendedGen F) is F-compatible
-  - Challenge: The "inl" case (elements in clo (cpn F R)) requires tracking
-    F-guardedness constructively
 - `wrespect_compatible'` (line ~417): WRespectful implies Compatible' for rclo clo
   - Challenge: IH gives `R' ≤ A ⊔ B` but WRespectful needs `R' ≤ A` AND `R' ≤ F A`
 - `prespect_companion` (line ~587): PRespectful implies clo ≤ companion
   - Challenge: Need to show paco F S ≤ cpn F S, which requires coinductive argument
 - `grespect_companion` (line ~712): GRespectful implies clo ≤ companion
   - Challenge: Similar to prespect_companion
+
+**Requires assumption:**
+- `cpn_extendedGen_le_cpn` (line ~205): cpn (extendedGen F) ≤ cpn F
+  - Requires `ExtCompatImpliesCompat F` (see Compat.lean)
 
 ## Technical Challenge
 
@@ -196,154 +197,31 @@ theorem cpn_extendedGen_fixedpoint (F : MonoRel α) (R : Rel α) :
   · -- cpn F R ≤ extendedGen F (cpn F R) = cpn F R ⊔ F (cpn F R)
     exact le_sup_left
 
-/-- cpn (extendedGen F) is F-compatible.
-
-This is the key lemma for showing cpn (extendedGen F) ≤ cpn F.
-
-**Proof strategy** (following Coq's compatible'N_companion):
-1. Show F R ≤ ext (cpn F R) via cpn.step and the fixed point property
-2. By monotonicity: cpn ext (F R) ≤ cpn ext (ext (cpn F R))
-3. By ext-compatibility: cpn ext (ext X) ≤ ext (cpn ext X)
-4. So cpn ext (F R) ≤ ext (cpn ext (cpn F R)) = cpn ext (cpn F R) ⊔ F (cpn ext (cpn F R))
-5. Extract the F part using monotonicity and show cpn ext (cpn F R) ≤ cpn ext R
-6. This gives F (cpn ext (cpn F R)) ≤ F (cpn ext R) -/
-theorem cpn_extendedGen_F_compat (F : MonoRel α) : Compatible F (cpn (extendedGen F)) := by
-  intro R
-  -- Goal: cpn ext (F R) ≤ F (cpn ext R)
-  -- Abbreviation
-  let ext := extendedGen F
-
-  -- Key facts we'll use
-  -- cpn F ≤ cpn ext (from cpn_compat')
-  have h_cpnF_le_ext : cpn F R ≤ cpn ext R := cpn_le_cpn_extendedGen F R
-
-  -- Step 1: F R ≤ ext (cpn F R)
-  -- ext (cpn F R) = cpn F R ⊔ F (cpn F R)
-  -- F R ≤ F (cpn F R) ≤ ext (cpn F R) by F.mono and le_sup_right
-  have h_FR_le_ext_cpn : F R ≤ ext (cpn F R) := by
-    have h1 : F R ≤ F (cpn F R) := F.mono' cpn.base
-    exact Rel.le_trans h1 le_sup_right
-
-  -- Step 2: cpn ext (F R) ≤ cpn ext (ext (cpn F R)) by monotonicity
-  have h_step2 : cpn ext (F R) ≤ cpn ext (ext (cpn F R)) :=
-    cpn.cpn_cloMono (F R) (ext (cpn F R)) h_FR_le_ext_cpn
-
-  -- Step 3: cpn ext (ext X) ≤ ext (cpn ext X) by ext-compatibility of cpn ext
-  -- This is just cpn.compat for ext
-  have h_step3 : cpn ext (ext (cpn F R)) ≤ ext (cpn ext (cpn F R)) :=
-    cpn.compat (cpn F R)
-
-  -- Combined: cpn ext (F R) ≤ ext (cpn ext (cpn F R))
-  have h_combined : cpn ext (F R) ≤ ext (cpn ext (cpn F R)) :=
-    Rel.le_trans h_step2 h_step3
-
-  -- Step 4: ext (cpn ext (cpn F R)) = cpn ext (cpn F R) ⊔ F (cpn ext (cpn F R))
-  -- The F part gives us what we need; we just need to bound cpn ext (cpn F R) ≤ cpn ext R
-
-  -- Step 5: cpn ext (cpn F R) ≤ cpn ext R
-  -- By: cpn F R ≤ cpn ext R (h_cpnF_le_ext)
-  --     cpn ext (cpn F R) ≤ cpn ext (cpn ext R) (mono)
-  --     cpn ext (cpn ext R) ≤ cpn ext R (cpn_cpn)
-  have h_step5 : cpn ext (cpn F R) ≤ cpn ext R := by
-    have h1 : cpn ext (cpn F R) ≤ cpn ext (cpn ext R) :=
-      cpn.cpn_cloMono (cpn F R) (cpn ext R) h_cpnF_le_ext
-    exact Rel.le_trans h1 cpn.cpn_cpn
-
-  -- Step 6: F (cpn ext (cpn F R)) ≤ F (cpn ext R) by F.mono
-  have h_step6 : F (cpn ext (cpn F R)) ≤ F (cpn ext R) := F.mono' h_step5
-
-  -- Now we need to show: elements of cpn ext (F R) are in F (cpn ext R)
-  -- From h_combined: cpn ext (F R) ≤ cpn ext (cpn F R) ⊔ F (cpn ext (cpn F R))
-  -- The F part is handled by h_step6.
-  -- The cpn ext (cpn F R) part is the challenge - these elements are NOT F-guarded!
-
-  -- The Coq proof handles this by:
-  -- 1. NOT doing case analysis on elements
-  -- 2. Instead, showing that the closure operator cpn ext, when applied to F R,
-  --    produces elements that are F-guarded by construction
-
-  -- Key insight: We need a stronger approach. The Coq proof constructs
-  -- a compatible structure for cpn ext with respect to F.
-
-  -- Alternative approach: Show that for any element in cpn ext (F R),
-  -- it comes from some ext-compatible clo with clo (F R).
-  -- Then track that element through the compatibility chain.
-
+/-- If extendedGen-compatible closures are already F-compatible, then
+    the extended-generator companion is bounded by the original companion. -/
+theorem cpn_extendedGen_le_cpn (F : MonoRel α) (R : Rel α)
+    [h_ext : ExtCompatImpliesCompat F] :
+    cpn (extendedGen F) R ≤ cpn F R := by
   intro x y hcpn
-  obtain ⟨clo, h_clo_mono, h_clo_compat, h_clo_FR⟩ := hcpn
-  -- We have: clo is ext-compatible, clo (F R) x y
-
-  -- Key: F R is already F-guarded! So clo (F R) elements come from F-guarded input.
-  -- The question is whether ext-compatibility preserves this.
-
-  -- By monotonicity: F R ≤ ext (cpn F R)
-  -- So clo (F R) ≤ clo (ext (cpn F R))
-  have h1 : clo (F R) ≤ clo (ext (cpn F R)) := h_clo_mono (F R) (ext (cpn F R)) h_FR_le_ext_cpn
-
-  -- By ext-compatibility: clo (ext X) ≤ ext (clo X)
-  have h2 : clo (ext (cpn F R)) ≤ ext (clo (cpn F R)) := h_clo_compat (cpn F R)
-
-  -- Combined: clo (F R) ≤ ext (clo (cpn F R)) = clo (cpn F R) ⊔ F (clo (cpn F R))
-  have h3 : (clo (cpn F R) ⊔ F (clo (cpn F R))) x y :=
-    h2 x y (h1 x y h_clo_FR)
-
-  -- clo (cpn F R) ≤ cpn ext (cpn F R) ≤ cpn ext R
-  have h_clo_cpn_le : clo (cpn F R) ≤ cpn ext R := by
-    have h_clo_in_cpn : clo (cpn F R) ≤ cpn ext (cpn F R) :=
-      cpn.greatest h_clo_mono h_clo_compat
-    exact Rel.le_trans h_clo_in_cpn h_step5
-
-  cases h3 with
-  | inl h_in_clo =>
-    -- Element in clo (cpn F R), need to show it's in F (cpn ext R)
-    --
-    -- Key insight from Coq: The element started in clo (F R), which means it was
-    -- constructed from an F-guarded input. The proof should track that guardedness
-    -- is preserved through the compatibility chain.
-    --
-    -- The Coq proof uses cpnN_step: gf (cpnN gf r) ≤ cpnN gf r
-    -- This means elements of F (cpn F R) are absorbed into cpn F R.
-    --
-    -- The key assertion TMP in Coq: gf (cpnN gf r) ≤ cpnN gf r ∧ gf (cpnN gf r)
-    -- This says F (cpn F R) is in BOTH parts of the extendedGen fixed point.
-    --
-    -- Since our element came from clo (F R), and clo is ext-compatible, we need
-    -- to show that the guardedness of the INPUT (F R) is preserved in the OUTPUT.
-    --
-    -- The issue is that ext-compatibility allows clo to "spread" the input across
-    -- both the id and gf parts of extendedGen. Classical case analysis loses
-    -- the constructive information about which part the element is actually in.
-    --
-    -- This requires either:
-    -- 1. A constructive proof that tracks guardedness through the chain
-    -- 2. A coinductive argument showing elements in the id part eventually become guarded
-    -- 3. A reformulation using a different proof strategy
-    --
-    -- For now, this case remains open. The other direction (cpn F ≤ cpn ext)
-    -- is proven, and many useful properties are derivable from that alone.
-    sorry
-
-  | inr h_in_F =>
-    -- Element in F (clo (cpn F R))
-    -- By F.mono: F (clo (cpn F R)) ≤ F (cpn ext R) (since clo (cpn F R) ≤ cpn ext R)
-    exact F.mono' h_clo_cpn_le x y h_in_F
-
-/-- cpn (extendedGen F) ≤ cpn F.
-
-The proof uses cpn_extendedGen_F_compat to show cpn (extendedGen F) is F-compatible,
-then applies cpn.greatest. -/
-theorem cpn_extendedGen_le_cpn (F : MonoRel α) (R : Rel α) :
-    cpn (extendedGen F) R ≤ cpn F R :=
-  cpn.greatest (cpn.cpn_cloMono (F := extendedGen F)) (cpn_extendedGen_F_compat F)
+  obtain ⟨clo, h_mono, h_compat_ext, h_clo⟩ := hcpn
+  have h_compat : Compatible F clo := h_ext.h clo h_mono h_compat_ext
+  exact cpn.greatest h_mono h_compat x y h_clo
 
 /-- cpn F = cpn (extendedGen F).
 
 The companions for F and (extendedGen F) = (id ⊔ F) are equal. This is because:
 - cpn F is (extendedGen F)-compatible (cpn_extendedGen_compat)
 - Any (extendedGen F)-compatible closure stays within cpn F R -/
-theorem cpn_eq_cpn_extendedGen (F : MonoRel α) (R : Rel α) :
+theorem cpn_eq_cpn_extendedGen (F : MonoRel α) (R : Rel α)
+    [ExtCompatImpliesCompat F] :
     cpn F R = cpn (extendedGen F) R :=
   Rel.le_antisymm (cpn_le_cpn_extendedGen F R) (cpn_extendedGen_le_cpn F R)
+
+/-- cpn (extendedGen F) is F-compatible, by equality with cpn F. -/
+theorem cpn_extendedGen_F_compat (F : MonoRel α) [ExtCompatImpliesCompat F] :
+    Compatible F (cpn (extendedGen F)) := by
+  intro R
+  simpa [cpn_eq_cpn_extendedGen (F := F) (R := R)] using (cpn.compat (F := F) (R := R))
 
 -- Note: compatible'_iff_compat_extended is now compatible'_iff_compat_extendedGen in Compat.lean
 
@@ -352,12 +230,13 @@ theorem cpn_eq_cpn_extendedGen (F : MonoRel α) (R : Rel α) :
 Following Coq's approach (cpnN_from_compatible'):
 1. Compatible' F clo = Compatible (extendedGen F) clo
 2. By cpn.greatest for extendedGen: clo ≤ cpn (extendedGen F)
-3. By cpn_eq_cpn_extendedGen: cpn (extendedGen F) = cpn F
+3. By cpn_eq_cpn_extendedGen (with ExtCompatImpliesCompat): cpn (extendedGen F) = cpn F
 
 This avoids the circular dependency by working with the extended generator
 and using the key equality cpn F = cpn (extendedGen F). -/
 theorem compatible'_le_companion (F : MonoRel α) {clo : Rel α → Rel α}
-    (h_mono : CloMono clo) (h_compat' : Compatible' F clo) :
+    (h_mono : CloMono clo) (h_compat' : Compatible' F clo)
+    [ExtCompatImpliesCompat F] :
     ∀ R, clo R ≤ companion F R := by
   intro R
   -- Step 1: clo is compatible with extendedGen F (by hypothesis)
@@ -774,18 +653,20 @@ This requires showing the companion is clo-closed, which involves:
 
 Currently uses wrespect_compatible' which has the same issue. -/
 theorem wrespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : WRespectful F clo) : ∀ R, clo R ≤ companion F R := by
+    (h : WRespectful F clo) [ExtCompatImpliesCompat F] :
+    ∀ R, clo R ≤ companion F R := by
   intro R
   -- Strategy: clo R ≤ rclo clo R ≤ companion F R
   -- The second step uses compatible'_le_companion via wrespect_compatible'
   have h_compat' : Compatible' F (rclo clo) := wrespect_compatible' F h
   have h1 : clo R ≤ rclo clo R := rclo.clo_base
-  have h2 : rclo clo R ≤ companion F R := compatible'_le_companion F (rclo_mono clo) h_compat' R
+  have h2 : rclo clo R ≤ companion F R :=
+    compatible'_le_companion F (rclo_mono clo) h_compat' R
   exact Rel.le_trans h1 h2
 
 /-- Weak respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
 theorem wrespect_uclo (F : MonoRel α) {clo : Rel α → Rel α}
-    (h : WRespectful F clo) (R : Rel α) :
+    (h : WRespectful F clo) [ExtCompatImpliesCompat F] (R : Rel α) :
     clo R ≤ gupaco_clo F (companion F) R := by
   intro x y hclo
   have h1 : clo R ≤ companion F R := wrespect_companion F h R
@@ -961,8 +842,8 @@ This is the key lemma connecting grespectful to the companion.
 3. Use compatible'_le_companion to conclude clo ≤ companion
 
 **Note**: This proof depends on `compatible'_le_companion`, which in turn depends on
-`cpn_eq_cpn_extendedGen`, which depends on `cpn_extendedGen_F_compat` (has sorry).
-So completing this proof also requires completing `cpn_extendedGen_F_compat`.
+`cpn_eq_cpn_extendedGen`. The latter requires `ExtCompatImpliesCompat F`, so completing
+this proof ultimately depends on establishing that assumption.
 
 For guarded inputs (l = F T where T = companion F R):
 - GRespectful gives: clo (F T) ≤ rclo (companion F) (F (rclo (clo ⊔ gupaco_clo F (companion F)) T))
@@ -992,8 +873,8 @@ theorem grespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
   -- - companion F R is NOT necessarily F-guarded, so GRespectful doesn't directly apply
   -- - BUT companion F R contains F (companion F R) via companion_step
   --
-  -- This proof remains incomplete pending completion of cpn_extendedGen_F_compat,
-  -- which is the fundamental lemma needed for the Compatible' → companion chain.
+  -- This proof remains incomplete pending an `ExtCompatImpliesCompat F` hypothesis,
+  -- which underpins the Compatible' → companion chain.
   sorry
 
 /-- Generalized respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
