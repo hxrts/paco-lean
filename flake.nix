@@ -21,6 +21,7 @@
 
         nativeBuildInputs = with pkgs; [
           elan
+          just
         ];
 
       in
