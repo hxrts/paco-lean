@@ -2,7 +2,6 @@ import Paco.Basic
 import Paco.Companion
 import Paco.Compat
 import Paco.GPaco
-import Paco.Examples.Basic
 import Paco.Tactic
 import Paco.UpTo
 import Paco.Coind

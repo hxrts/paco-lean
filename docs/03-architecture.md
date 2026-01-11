@@ -15,7 +15,6 @@ Paco.lean (root)
 ├── Paco/Compat.lean     -- Coq naming aliases
 ├── Paco/Coind.lean      -- Coinduction wrappers
 ├── Paco/Simp.lean       -- Simp lemmas
-├── Paco/Examples/       -- Example proofs
 └── Paco/UpTo/           -- Up-to techniques
     ├── Rclo.lean        -- Reflexive closure
     ├── Compat.lean      -- Compatibility

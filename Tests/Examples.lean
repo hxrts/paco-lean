@@ -11,6 +11,34 @@ namespace Paco.Tests.Examples
 open Paco
 
 /-!
+## Basic paco example: Equality relation
+-/
+
+variable {α : Type}
+
+/-- A simple relation transformer: relate elements if they are equal. -/
+def EqF : MonoRel α :=
+  ⟨fun R x y => x = y ∨ R x y, by
+    intro R S hRS x y hxy
+    cases hxy with
+    | inl heq => exact Or.inl heq
+    | inr hR => exact Or.inr (hRS x y hR)
+  ⟩
+
+/-- `paco EqF ⊥` contains equality (by coinduction). -/
+theorem paco_eq (x : α) : paco EqF ⊥ x x := by
+  apply paco_coind EqF (fun a b => a = b) ⊥
+  · intro a b hab
+    subst hab
+    simp only [Rel.sup_bot]
+    exact Or.inl rfl
+  · rfl
+
+/-- Unfolding a paco hypothesis yields an `EqF` step. -/
+example (x y : α) (h : paco EqF ⊥ x y) : EqF (upaco EqF ⊥) x y := by
+  simpa using (paco_unfold EqF ⊥ x y h)
+
+/-!
 ## Stream bisimulation with an up-to closure
 -/
 
