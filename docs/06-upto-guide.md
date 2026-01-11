@@ -109,6 +109,20 @@ Respectfulness is a weaker condition than compatibility. It is often easier to p
 
 The library provides three variants. See the Respectfulness Variants section below for details on when to use each one.
 
+### PRespectful and tagged roundtrip
+
+Lean does not derive `Compatible'` from `PRespectful` without extra assumptions.
+The library uses a tagged roundtrip strategy to recover guardedness information.
+
+The roundtrip assumption is `TagRoundtrip F clo`.
+It states that closing on `R ⊔ S` is contained in closing on tagged `R` and `S` and then forgetting the tags.
+
+The second assumption is `PrespectRightGuarded F clo`.
+It states that the guarded branch of `prespectClosure` is preserved by `F`.
+
+Under these assumptions, `prespect_compatible'_tagged` yields `Compatible'`.
+If `F` is inflationary and `clo` is `PRespectfulStrong`, the right-guardedness condition follows automatically.
+
 ## The rclo Construction
 
 The `rclo` type accumulates closure applications. It is the smallest relation containing R and closed under a closure operator.

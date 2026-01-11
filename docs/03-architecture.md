@@ -139,6 +139,9 @@ This directory contains the respectfulness framework. Respectfulness provides we
 
 The submodules include `Core.lean` for base definitions, `WRespectful.lean` for weak respectfulness, `PRespectful.lean` for paco respectfulness, and `GRespectful.lean` for generalized respectfulness. The `Tagged.lean` module provides internal machinery for proofs.
 
+The tagged layer also provides the `TagRoundtrip` and `PrespectRightGuarded` assumptions.
+These assumptions are used to recover `Compatible'` from `PRespectful` in Lean.
+
 ## Key Types
 
 ### Rel α

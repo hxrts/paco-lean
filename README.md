@@ -84,7 +84,24 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 | `gpaco_clo_gupaco` | Gupaco absorption into gpaco (accumulation) |
 | `cloMono_union` | Union of monotone closures is monotone |
 | `wcompat_union` | Union of weakly compatible closures is weakly compatible |
+| `prespect_compatible'_tagged` | `PRespectful` plus `TagRoundtrip` and `PrespectRightGuarded` yields `Compatible'` for `prespectClosure` |
+| `prespect_compatible'_strong` | `PRespectfulStrong` yields `Compatible'` for `prespectClosure` |
+| `prespect_compatible'_inflationary` | `PRespectfulStrong` plus `Inflationary F` yields `Compatible'` via right-guardedness |
 | `companion_compose` | Companion closed under composition (assumes transClosure compatible) |
+
+## Production guarantees
+
+This section summarizes which results are available without extra assumptions and which rely on additional conditions.
+
+Guaranteed without extra assumptions:
+- Core `paco`, `upaco`, and `gpaco` definitions with unfold and fold lemmas.
+- Coinduction principles in `Paco.Coind` and `Paco.GPaco`.
+- Soundness for closures that are proven `Compatible` or `Compatible'` in the library.
+
+Guaranteed with additional assumptions:
+- `prespect_compatible'_tagged` when `PRespectful`, `TagRoundtrip`, and `PrespectRightGuarded` are available.
+- `prespect_compatible'_strong` when `PRespectfulStrong` is available.
+- `prespect_compatible'_inflationary` when `PRespectfulStrong` and `Inflationary F` are available.
 
 ## Documentation
 
