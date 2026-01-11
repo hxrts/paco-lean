@@ -161,10 +161,6 @@ Reflexive closure under a closure operator. This type accumulates closure applic
 
 The `MonoRel` type bundles transformers with monotonicity proofs. This prevents errors from passing non-monotone functions to paco. The alternative of requiring monotonicity at each use site would create proof obligations throughout client code.
 
-### Separation from QPF/ITree
-
-The library is independent of QPF and ITree. This keeps the core small and avoids heavy dependencies. Integration with specific coinductive types belongs in separate packages like paco-qpf.
-
 ### Simp Lemma Strategy
 
 Some lemmas are marked `@[simp]` while others are not. The `paco_eq` and `gpaco_step` lemmas can cause simp loops and are not marked. Lemmas that always reduce complexity are marked.
