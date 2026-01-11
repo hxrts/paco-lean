@@ -90,6 +90,29 @@ theorem compatible'_iff_compat_extendedGen (F : MonoRel α) (clo : Rel α → Re
   · intro h R
     exact h R
 
+
+/-!
+## Tight Generator and Compatible∧
+-/
+
+/-- The tight generator (id ⊓ F) as a MonoRel. -/
+def tightGen (F : MonoRel α) : MonoRel α where
+  F := fun R => R ⊓ F R
+  mono := fun _ _ hRS => inf_le_inf hRS (F.mono' hRS)
+
+theorem tightGen_def (F : MonoRel α) (R : Rel α) : tightGen F R = R ⊓ F R := rfl
+
+/-- Strong compatibility: clo (R ⊓ F R) ≤ clo R ⊓ F (clo R).
+
+This is compatibility with the tight generator (id ⊓ F). -/
+def CompatibleAnd (F : MonoRel α) (clo : Rel α → Rel α) : Prop :=
+  ∀ R, clo (R ⊓ F R) ≤ clo R ⊓ F (clo R)
+
+/-- CompatibleAnd F clo is equivalent to Compatible (tightGen F) clo -/
+theorem compatibleAnd_iff_compat_tightGen (F : MonoRel α) (clo : Rel α → Rel α) :
+    CompatibleAnd F clo ↔ Compatible (tightGen F) clo := by
+  constructor <;> intro h R <;> simpa [CompatibleAnd, tightGen_def] using h R
+
 /-!
 ## Optional Restriction for Companion Equality
 

@@ -487,6 +487,22 @@ theorem paco_accum {α : Type*} (F : MonoRel α) (r : Rel α) :
   paco_mon F (r_le_upaco F r)
 
 /-!
+### Paco/Upaco Idempotence
+-/
+
+/-- paco is idempotent over an upaco parameter. --/
+theorem paco_upaco_eq {α : Type*} (F : MonoRel α) (r : Rel α) :
+    paco F (upaco F r) = paco F r := by
+  apply Rel.le_antisymm
+  · exact paco_acc_upaco F r
+  · exact paco_accum F r
+
+/-- paco is idempotent when its parameter already contains paco. --/
+theorem paco_idem {α : Type*} (F : MonoRel α) (r : Rel α) :
+    paco F (r ⊔ paco F r) = paco F r := by
+  simpa [upaco, sup_comm] using (paco_upaco_eq F r)
+
+/-!
 ### Coinduction with Accumulation
 -/
 

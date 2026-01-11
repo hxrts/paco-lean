@@ -103,33 +103,23 @@ theorem symmClosure_compatible (F : MonoRel α)
 Symmetric closure is compatible when F respects symmetry.
 
 
-## Respectfulness (wrespectful / prespectful / grespectful)
+## Respectfulness
 
-Respectfulness is a weaker condition than compatibility that is often easier to prove.
-The library provides three forms:
+Respectfulness is a weaker condition than compatibility. It is often easier to prove because it makes fewer demands on the closure operator.
 
-- `WRespectful F clo`: clo l ≤ F (rclo clo r) when l ≤ r and l ≤ F r
-- `PRespectful F clo`: clo l ≤ paco F (r ⊔ clo r) under the same guards
-- `GRespectful F clo`: clo l ≤ rclo (companion F) (F (rclo (clo ⊔ gupaco_clo F (companion F)) r))
-
-In this codebase, the companion lemmas for PRespectful and GRespectful are currently
-routed through the Compatible' → companion chain, which requires:
-- `Compatible' F clo`
-- `ExtCompatImpliesCompat F` (e.g., via `Inflationary F`)
-
-When you can show `Compatible' F clo`, you can use `compatible'_le_companion` directly.
+The library provides three variants. See the Respectfulness Variants section below for details on when to use each one.
 
 ## The rclo Construction
 
-The `rclo` type accumulates closure applications. It is the reflexive-transitive closure under a closure operator.
+The `rclo` type accumulates closure applications. It is the smallest relation containing R and closed under a closure operator.
 
 ```lean
 inductive rclo (clo : Rel α → Rel α) (R : Rel α) : Rel α where
-  | base : R x y → rclo clo R x y
-  | clo : clo (rclo clo R) x y → rclo clo R x y
+  | base (h : R x y) : rclo clo R x y
+  | clo (R' : Rel α) (hR' : R' ≤ rclo clo R) (h : clo R' x y) : rclo clo R x y
 ```
 
-The `base` constructor injects R into rclo. The `clo` constructor allows one application of the closure operator. Multiple applications are possible by nesting.
+The `base` constructor injects R into rclo. The `clo` constructor applies the closure to any relation R' contained in rclo. This formulation is more general than direct application to rclo itself.
 
 ## GPaco with Closures
 
@@ -153,7 +143,7 @@ theorem gpaco_clo_cofix (F : MonoRel α) (clo : Rel α → Rel α)
     {x y : α} (hxy : R x y) : gpaco_clo F clo r rg x y
 ```
 
-The step function receives `rclo clo (R ⊔ ...)` for recursive calls. This allows applying the closure during recursion.
+The step function receives `rclo clo (R ⊔ upaco (composeRclo F clo) (rg ⊔ r))` for recursive calls. This allows applying the closure during recursion.
 
 ## The Companion
 
@@ -173,24 +163,17 @@ The companion satisfies several key properties.
 ```lean
 theorem companion_extensive (F : MonoRel α) (R : Rel α) :
     R ≤ companion F R
-```
 
-The companion is extensive. Every relation is contained in its companion closure.
-
-```lean
 theorem companion_compat (F : MonoRel α) :
     Compatible F (companion F)
-```
 
-The companion is compatible with F. Using the companion as your closure is always sound.
-
-```lean
 theorem companion_mono (F : MonoRel α) :
     CloMono (companion F)
 ```
 
-The companion is monotone.
+These lemmas state that the companion is extensive, compatible with `F`, and monotone.
 
+### Companion Composition
 
 The companion is also closed under relational composition when `F` is
 composition-compatible. The ergonomic workflow is:
@@ -212,6 +195,8 @@ class CompCompatible (F : MonoRel α) : Prop :=
 theorem companion_compose (F : MonoRel α) (R : Rel α) [CompCompatible F] :
     ∀ a b c, companion F R a b → companion F R b c → companion F R a c
 ```
+
+This pattern makes the composition lemma usable without passing a proof argument at each call site.
 
 ### Using the Companion
 
@@ -241,32 +226,24 @@ Composing compatible closures yields a compatible closure. This allows building 
 
 ## Closure Union
 
-Two closures can be combined using union. The result applies both closures and takes the union.
+Closure union combines two closures. The result applies both closures and takes the union.
 
 ```lean
 def cloUnion (clo₁ clo₂ : Rel α → Rel α) : Rel α → Rel α :=
   fun R => clo₁ R ⊔ clo₂ R
 
 infixl:65 " ⊔ᶜ " => cloUnion
-```
 
-The union of monotone closures is monotone.
-
-```lean
 theorem cloMono_union {clo₁ clo₂ : Rel α → Rel α}
     (h₁ : CloMono clo₁) (h₂ : CloMono clo₂) :
     CloMono (clo₁ ⊔ᶜ clo₂)
-```
 
-When both closures are weakly compatible with F, their union is also weakly compatible.
-
-```lean
 theorem wcompat_union (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
     (h₁ : WCompatible F clo₁) (h₂ : WCompatible F clo₂) :
     WCompatible F (clo₁ ⊔ᶜ clo₂)
 ```
 
-Closure union is useful when you want to reason up-to multiple properties simultaneously.
+These lemmas show closure union preserves monotonicity and weak compatibility. This helps when combining multiple up-to techniques.
 
 ### Idempotence
 
@@ -305,3 +282,23 @@ Since `EqF` preserves reflexivity, `reflClosure` is compatible with `EqF`. You c
 For transitivity arguments, use `transClosure` or `rtClosure`. You must verify compatibility holds for your specific F.
 
 Transitivity is sound when F distributes over transitive chains. The step function can return chains of intermediate elements, and the closure accumulates them for later justification.
+
+
+## Respectfulness Variants
+
+The library provides three forms of respectfulness. Each offers a weaker condition than compatibility that is easier to verify.
+
+`WRespectful` (weak respectfulness) requires that applying the closure to a relation l yields something in F of the rclo-expanded relation. This is the weakest form. Use it when you only need basic closure properties.
+
+`PRespectful` (paco respectfulness) strengthens WRespectful by requiring the result lands in paco rather than just F. This variant integrates better with accumulator-based proofs.
+
+`GRespectful` (generalized respectfulness) works with the companion closure. It provides the strongest guarantees and is useful for complex up-to arguments.
+
+## When to Use Respectfulness
+
+Respectfulness is useful when direct compatibility is hard to prove. The condition `clo (F R) ≤ F (clo R)` required by compatibility can be difficult to establish for some closures.
+
+Respectfulness relaxes this by allowing the closure to interact with the paco structure. The trade-off is that respectfulness requires additional assumptions about the generator F.
+
+For generators that are inflationary (where `R ≤ F R`), respectfulness conditions are often easier to verify. The library provides lemmas connecting respectfulness to compatibility under these assumptions.
+
