@@ -4,8 +4,10 @@
 # Configuration
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Maximum threads for lake/lean builds
+# Maximum threads for lake/lean builds (via LEAN_NUM_THREADS)
 max_threads := "3"
+
+export LEAN_NUM_THREADS := max_threads
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Build
@@ -16,15 +18,15 @@ default: build
 
 # Full build
 build:
-    lake build -j{{max_threads}}
+    lake build
 
 # Quick build for core paco modules
 quick:
-    lake build -j{{max_threads}} Paco.Basic Paco.UpTo.Compat Paco.UpTo.Closures Paco.Companion
+    lake build Paco.Basic Paco.UpTo.Compat Paco.UpTo.Closures Paco.Companion
 
 # Build tests
 test:
-    lake build -j{{max_threads}} Tests
+    lake build Tests
 
 # Clean build artifacts
 clean:
