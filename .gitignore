@@ -19,3 +19,8 @@ work/
 ext/
 Standalone/
 Standalone.lean
+
+# Documentation build artifacts
+docs/book/
+docs/mermaid.min.js
+docs/mermaid-init.js

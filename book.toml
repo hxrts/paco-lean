@@ -1,0 +1,18 @@
+[book]
+title = "Paco: Parametrized Coinduction for Lean 4"
+authors = ["Sam Hart"]
+language = "en"
+src = "docs"
+
+[build]
+build-dir = "docs/book"
+
+[output.html]
+preferred-dark-theme = "rust"
+additional-js = ["docs/mermaid.min.js", "docs/mermaid-init.js"]
+mathjax-support = true
+
+[output.html.playground]
+editable = false
+
+[preprocessor.mermaid]

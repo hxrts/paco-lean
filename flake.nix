@@ -20,8 +20,24 @@
         };
 
         nativeBuildInputs = with pkgs; [
+          # Lean
           elan
+
+          # Build tools
           just
+
+          # Documentation
+          mdbook
+          mdbook-mermaid
+
+          # Link checking
+          lychee
+
+          # Shell utilities for scripts
+          coreutils
+          findutils
+          gawk
+          gnused
         ];
 
       in
@@ -31,7 +47,13 @@
 
           shellHook = ''
             echo "Paco development environment"
-            echo "Lean: $(elan show 2>/dev/null | head -1 || echo 'run: elan default leanprover/lean4:v4.27.0-rc1')"
+            echo "Lean: $(elan show 2>/dev/null | head -1 || echo 'run: elan default leanprover/lean4:v4.26.0')"
+            echo ""
+            echo "Commands:"
+            echo "  just build      - Build the project"
+            echo "  just book       - Build documentation"
+            echo "  just serve      - Serve docs with live reload"
+            echo "  just link-check - Check for broken links"
           '';
         };
       }
