@@ -22,5 +22,6 @@ Standalone.lean
 
 # Documentation build artifacts
 docs/book/
+docs/SUMMARY.md
 docs/mermaid.min.js
 docs/mermaid-init.js
