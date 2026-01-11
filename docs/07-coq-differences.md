@@ -4,9 +4,9 @@ This document describes the key architectural differences between paco-lean and 
 
 ## Overview
 
-Paco-lean follows the Coq paco library closely in its core definitions. The `paco`, `upaco`, `gpaco`, and `rclo` constructions match their Coq counterparts. Both libraries provide equivalent proving power for coinductive proofs with up-to techniques.
+Paco-lean follows the Coq paco library closely in its core definitions. The `paco`, `upaco`, `gpaco`, and `rclo` constructions match their Coq counterparts. Both libraries provide full proving power for coinductive proofs with up-to techniques.
 
-The differences arise from how Lean and Coq handle proof term structure. Coq proofs retain constructive information that tracks which branch of a disjunction produced a given element. Lean uses classical logic where this information is not automatically preserved. Paco-lean compensates by offering multiple proof paths with different tradeoffs.
+The key architectural difference is in how each library characterizes sound up-to techniques. Coq paco provides several sufficient conditions (wrespectfulN, prespectfulN, grespectfulN) that are known to imply compatibility. Paco-lean uses bisimulation to encode the exact boundary of what constitutes a sound up-to technique. This gives users a direct characterization rather than a collection of patterns to match.
 
 ## Proof Paths Comparison
 
@@ -89,6 +89,24 @@ This machinery is only needed when using the weak `PRespectful` condition with n
 
 The framework does provide value beyond respectfulness proofs. The `Tag`, `tagLeft`, `tagRight`, and projection functions form a reusable toolkit for any proof requiring explicit branch tracking.
 
+## Bisimulation-Based Boundary Characterization
+
+The most significant difference between the libraries is how they characterize sound up-to techniques.
+
+Coq paco provides several sufficient conditions that are known to imply compatibility. The conditions `wrespectfulN`, `prespectfulN`, and `grespectfulN` are patterns that users can match. If a closure fits one of these patterns, the corresponding lemma proves it embeds into the companion. If a closure does not fit these patterns, users must provide an ad-hoc compatibility proof.
+
+Paco-lean uses bisimulation to encode the exact boundary of soundness. The `TagClosed` property and the preservation lemmas characterize precisely which operations maintain the structure required for compatibility. Any closure can be checked against this characterization directly.
+
+```lean
+def TagClosed (R : Rel (Tag α)) : Prop :=
+  (∀ a b, R (Sum.inl a) (Sum.inr b) → False) ∧
+  (∀ a b, R (Sum.inr a) (Sum.inl b) → False)
+```
+
+The bisimulation establishes a correspondence between relations on `Tag α = Sum α α` and pairs of relations on `α`. Operations that preserve `TagClosed` respect this correspondence. The preservation lemmas (`projLeft_paco`, `prespectClosure_taggedUnion`, `upaco_closed`) show that paco operations maintain this structure.
+
+This approach has a concrete advantage. Users do not need to fit their closure into a predefined pattern. They can verify directly whether their closure preserves the tagged structure. The bisimulation makes the boundary explicit rather than encoding it implicitly through sufficient conditions.
+
 ## Choosing a Proof Strategy
 
 For most use cases, follow this decision process.
@@ -101,16 +119,16 @@ If the strong form is difficult, use `PRespectful` with explicit `TagRoundtrip` 
 
 ## Summary
 
-| Aspect | Coq Paco | Paco-Lean |
-|--------|----------|-----------|
-| Core definitions | Direct | Direct (matching) |
-| Proving power | Full | Full (equivalent) |
-| Proof paths | Single implicit | Multiple explicit |
-| Weak conditions | Work directly | Require tagged assumptions |
-| Strong conditions | Not distinguished | Work without assumptions |
-| Inflationary generators | Implicit | Explicit with auto instances |
-| Branch tracking | Via proof terms | Via tagged framework |
-| User choice | Minimal | Select best path for use case |
+| Aspect                  | Coq Paco                     | Paco-Lean                        |
+|-------------------------|------------------------------|----------------------------------|
+| Core definitions        | Direct                       | Direct (matching)                |
+| Up-to boundary          | Sufficient conditions        | Exact characterization           |
+| Soundness check         | Match predefined patterns    | Verify TagClosed preservation    |
+| Proof paths             | Single implicit              | Multiple explicit                |
+| Weak conditions         | Work directly                | Require tagged assumptions       |
+| Strong conditions       | Not distinguished            | Work without assumptions         |
+| Inflationary generators | Implicit                     | Explicit with auto instances     |
+| Branch tracking         | Via proof terms              | Via bisimulation framework       |
 
 ## References
 
