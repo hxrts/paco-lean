@@ -83,7 +83,7 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 | `prespect_compatible'_inflationary` | `PRespectfulStrong` plus `Inflationary F` yields `Compatible'` via right-guardedness |
 | `companion_compose` | Companion closed under composition (assumes transClosure compatible) |
 
-## Production guarantees
+## Assumptions
 
 This section summarizes which results are available without extra assumptions and which rely on additional conditions.
 
