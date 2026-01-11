@@ -22,14 +22,6 @@ The parameter `r` accumulates facts during the proof and the coinductive hypothe
 
 Optional integration with QPF/ITree lives in a separate package (see `paco-qpf`). The core paco library itself is QPF-agnostic.
 
-## Separation of concerns
-
-This package is **generic** and should remain independent of QPF/ITree:
-- **In scope**: relations, monotone transformers, paco/upaco/gpaco, up-to, companion
-- **Out of scope**: QPF types, ITree, domain-specific bisimulation proofs
-
-If you want paco-based proofs for QPF/ITree, use the integration package `paco-qpf`.
-
 ## Modules
 
 The library is organized into core modules and up-to technique modules. See [Architecture Guide](docs/03-architecture.md) for detailed module descriptions.
@@ -40,6 +32,8 @@ The library is organized into core modules and up-to technique modules. See [Arc
 - `Paco.Coind`: Ergonomic coinduction wrappers (`coind`, `gcoind`, `upto_coind`)
 - `Paco.UpTo`: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
 - `Paco.Companion`: Companion construction (greatest compatible closure)
+- `Paco.Compat`: Coq paco naming compatibility aliases
+- `Paco.Simp`: Additional simp lemmas
 
 ## Installation
 
@@ -99,9 +93,9 @@ Guaranteed without extra assumptions:
 - Soundness for closures that are proven `Compatible` or `Compatible'` in the library.
 
 Guaranteed with additional assumptions:
+- `prespect_compatible'_strong` when `PRespectfulStrong` is available (no extra assumptions).
+- `prespect_compatible'_inflationary` when `PRespectfulStrong` and `Inflationary F` are available. Most practical generators are inflationary and get automatic instances.
 - `prespect_compatible'_tagged` when `PRespectful`, `TagRoundtrip`, and `PrespectRightGuarded` are available.
-- `prespect_compatible'_strong` when `PRespectfulStrong` is available.
-- `prespect_compatible'_inflationary` when `PRespectfulStrong` and `Inflationary F` are available.
 
 ## Documentation
 
