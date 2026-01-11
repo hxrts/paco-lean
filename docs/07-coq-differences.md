@@ -1,6 +1,6 @@
 # Differences from Coq Paco
 
-This document describes the key architectural differences between paco-lean and the [Coq paco library](https://github.com/snu-sf/paco). Understanding these differences helps developers choose appropriate proof strategies when working with paco-lean.
+This document describes the key architectural differences between paco-lean and the [Coq paco library](https://plv.mpi-sws.org/paco/) ([GitHub](https://github.com/snu-sf/paco)). Understanding these differences helps developers choose appropriate proof strategies when working with paco-lean.
 
 ## Overview
 
