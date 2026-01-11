@@ -39,7 +39,7 @@ Import `Paco` to get all functionality. Individual modules can be imported for s
 
 ### Paco/Basic.lean
 
-This module defines the fundamental types and operations. The `Rel α` type represents binary relations as functions `α → α → Prop`. Relations form a complete lattice with union as join and intersection as meet.
+This module defines the fundamental types and operations. The `Rel α` type represents binary relations as functions `α → α → Prop`.
 
 ```lean
 def Rel (α : Type*) := α → α → Prop
@@ -47,15 +47,13 @@ def Rel (α : Type*) := α → α → Prop
 
 The lattice operations use pointwise definitions. The bottom element `⊥` is the empty relation. The top element `⊤` is the total relation.
 
-The `MonoRel α` type bundles a relation transformer with a monotonicity proof. This bundling ensures all transformers used with paco satisfy the required property.
-
 ```lean
 structure MonoRel (α : Type*) where
   toFun : Rel α → Rel α
   mono : Monotone toFun
 ```
 
-The `paco` and `upaco` definitions are the core of parametrized coinduction. They are defined using an existential witness characterization rather than directly as fixed points.
+The `MonoRel α` type bundles a relation transformer with a monotonicity proof. This bundling ensures transformers used with paco are monotone. The `paco` and `upaco` definitions provide the core parametrized coinduction interface.
 
 ### Paco/GPaco.lean
 
@@ -97,11 +95,11 @@ This module defines `rclo`, the reflexive-transitive closure under a closure ope
 
 ```lean
 inductive rclo (clo : Rel α → Rel α) (R : Rel α) : Rel α where
-  | base : R x y → rclo clo R x y
-  | clo : clo (rclo clo R) x y → rclo clo R x y
+  | base (h : R x y) : rclo clo R x y
+  | clo (R' : Rel α) (hR' : R' ≤ rclo clo R) (h : clo R' x y) : rclo clo R x y
 ```
 
-This construction allows iterating a closure while accumulating results.
+The `base` constructor injects R into rclo. The `clo` constructor applies the closure to any relation contained in rclo. This formulation allows iterating a closure while accumulating results.
 
 ### Paco/UpTo/Compat.lean
 
@@ -135,12 +133,11 @@ This module defines standard closure operators. These include `reflClosure`, `sy
 This module proves composition lemmas for closures. Composing compatible closures yields a compatible closure. Idempotence lemmas simplify nested applications.
 
 
-### Paco/UpTo/Respectful.lean
+### Paco/UpTo/Respectful/
 
-This is the umbrella module for respectfulness; the actual content lives in
-`Paco/UpTo/Respectful/*` submodules (Core/Tagged/W/P/G). The companion lemmas for
-PRespectful and GRespectful currently route through `Compatible'` plus
-`ExtCompatImpliesCompat` assumptions to stay usable in concrete settings.
+This directory contains the respectfulness framework. Respectfulness provides weaker conditions than compatibility for closure soundness.
+
+The submodules include `Core.lean` for base definitions, `WRespectful.lean` for weak respectfulness, `PRespectful.lean` for paco respectfulness, and `GRespectful.lean` for generalized respectfulness. The `Tagged.lean` module provides internal machinery for proofs.
 
 ## Key Types
 

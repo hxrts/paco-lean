@@ -34,7 +34,9 @@ theorem paco_eq (x : α) : paco EqF ⊥ x x := by
   · rfl
 ```
 
-The first argument after `EqF` is the witness relation. Here it is equality. The second argument is the accumulator, which is `⊥` for proofs without accumulation. The first goal shows the witness is a post-fixpoint. The second goal shows the witness contains (x, x).
+The first argument after `EqF` is the witness relation. Here it is equality. The second argument is the accumulator, which is `⊥` for proofs without accumulation.
+
+The first goal shows the witness is a post-fixpoint. The second goal shows the witness contains `(x, x)`.
 
 ## Using the Coind Wrapper
 
@@ -141,6 +143,70 @@ theorem paco_refl (x : α) : paco EqF ⊥ x x := by
 ```
 
 The proof folds into paco, then provides the left disjunct (equality) with `rfl`.
+
+## Additional Tactics
+
+The library provides several convenience tactics for common patterns.
+
+### pmult
+
+The `pmult` tactic absorbs nested paco into a single paco. It applies the accumulation lemma `paco F (paco F r) ≤ paco F r`.
+
+```lean
+theorem nested_paco (h : paco EqF (paco EqF r) x y) : paco EqF r x y := by
+  pmult
+  exact h
+```
+
+Use `pmult` when composing lemmas that each return paco results.
+
+### pdestruct
+
+The `pdestruct` tactic combines unfold, destruct, and bot-clearing in one step.
+
+```lean
+example (h : paco EqF ⊥ x y) : x = y ∨ paco EqF ⊥ x y := by
+  pdestruct h
+  · left; assumption
+  · right; assumption
+```
+
+This is equivalent to `punfold h; cases h; pclearbot`. The original hypothesis is preserved.
+
+### pinversion
+
+The `pinversion` tactic is similar to `pdestruct` but explicitly preserves the original hypothesis.
+
+```lean
+example (h : paco EqF ⊥ x y) : x = y ∨ paco EqF ⊥ x y := by
+  pinversion h
+  · left; assumption
+  · right; assumption
+```
+
+Use `pinversion` when you need to reference the original paco hypothesis after case analysis.
+
+## Choosing a Witness Relation
+
+The witness relation R determines what you can prove. A good witness satisfies two properties. First, R must contain your target pair. Second, R must be a post-fixpoint of the parameterized transformer.
+
+For reflexivity proofs, equality is often a good witness. For transitivity proofs, the transitive closure works well. For bisimulation, pairs of related states form the witness.
+
+Start with the simplest relation that contains your target. If the post-fixpoint proof fails, expand the witness to include more pairs.
+
+## Troubleshooting
+
+### pfold does not apply
+
+The `pfold` tactic expects a goal of the form `paco F r x y`. If your goal is `upaco F r x y`, use `pstep` instead. If your goal has a different form, you may need to unfold definitions first.
+
+### Witness is not a post-fixpoint
+
+The step function must show `R a b → F (R ⊔ r) a b`. If this fails, your witness may be too small. Try expanding R to include more pairs that the F-step might produce.
+
+### Accumulator mismatch
+
+When working with non-empty accumulators, ensure the accumulator in your goal matches the accumulator in your hypothesis. Use `paco_mon` to weaken from a smaller accumulator to a larger one.
 
 ## Next Steps
 

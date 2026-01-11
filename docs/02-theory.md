@@ -10,7 +10,7 @@ Coinduction proves properties about infinite structures by showing a relation is
 gfp F = ⋃ { R | R ⊆ F(R) }
 ```
 
-A relation R is a post-fixed point when `R ⊆ F(R)`. To prove `gfp F x y`, you provide a witness relation R such that `R x y` and `R ⊆ F(R)`.
+A relation R is a post-fixed point when `R ⊆ F(R)`. This means every pair in R can be justified by one application of F. To prove `gfp F x y`, you provide a witness relation R such that `R x y` and `R ⊆ F(R)`.
 
 This approach requires knowing the complete witness relation upfront. Every pair you want to prove related must be in R before you begin. This creates difficulties when the set of pairs grows during a proof.
 
@@ -18,7 +18,7 @@ This approach requires knowing the complete witness relation upfront. Every pair
 
 Consider proving transitivity for a coinductive relation. Given `x ~ y` and `y ~ z`, you want to show `x ~ z`. The witness relation must include all intermediate pairs.
 
-For a chain `x₀ ~ x₁ ~ x₂ ~ ... ~ xₙ`, standard coinduction requires predicting every `xᵢ ~ xⱼ` pair that will arise. The number of such pairs grows quadratically with chain length. In infinite chains, the witness relation becomes impossible to specify.
+For a chain `x₀ ~ x₁ ~ x₂ ~ xₙ`, standard coinduction requires predicting every `xᵢ ~ xⱼ` pair that will arise. The number of such pairs grows quadratically with chain length, and the witness relation becomes impossible to specify for infinite chains.
 
 This is the accumulation problem. Standard coinduction cannot accumulate new facts during a proof. You must know everything before starting.
 
@@ -36,47 +36,31 @@ The usable coinductive hypothesis becomes `upaco F r = paco F r ∪ r`. When you
 
 ### Key Properties
 
-The accumulation theorem states that `paco F (paco F r) ≤ paco F r`. You can fold a nested paco into a single paco. This means proving `paco F (paco F r) x y` is equivalent to proving `paco F r x y`.
+The key properties describe accumulation, monotonicity, and the empty accumulator case.
 
 ```lean
 theorem paco_acc (F : MonoRel α) (r : Rel α) :
     paco F (paco F r) ≤ paco F r
-```
 
-This theorem enables incremental proofs. After establishing `paco F r x y`, you can use this fact in subsequent coinductive arguments by placing it in the accumulator.
-
-Monotonicity states that `paco F` is monotone in both arguments. If `r ≤ s`, then `paco F r ≤ paco F s`. Larger accumulators give larger results.
-
-```lean
 theorem paco_mon (F : MonoRel α) {r s : Rel α} (hrs : r ≤ s) :
     paco F r ≤ paco F s
-```
 
-When the accumulator is empty, paco reduces to the standard greatest fixed point.
-
-```lean
 theorem paco_bot (F : MonoRel α) : paco F ⊥ = F.toOrderHom.gfp
 ```
 
-This shows paco generalizes standard coinduction.
+The accumulation lemma shows nested `paco` can be folded. The monotonicity lemma shows larger accumulators give larger results. The empty accumulator lemma shows paco reduces to the greatest fixed point.
 
 ## Generalized Paco
 
-Generalized paco (gpaco) adds a second parameter for guarded facts. The first parameter `r` contains facts available immediately. The second parameter `g` contains facts available only after one step of F.
+Generalized paco adds a second parameter for guarded facts. The parameter `r` holds immediate facts and `g` holds facts available after one `F` step.
 
 ```
 gpaco F r g = paco F (r ∪ g) ∪ r
-```
 
-The guard `g` prevents using certain facts until you have made progress. After unfolding once, guarded facts become available. This distinction matters for proofs where immediate use of some facts would create unsound reasoning.
-
-The usable hypothesis for gpaco releases the guard.
-
-```
 gupaco F r g = gpaco F r g ∪ g
 ```
 
-After one F-step, both `r` and `g` become available.
+The guard prevents immediate use of facts in `g`. The usable hypothesis is `gupaco`, which releases the guard after one step.
 
 ### Relationship to Paco
 
@@ -111,16 +95,18 @@ Standard closures include reflexive closure, symmetric closure, transitive closu
 
 ### The Companion
 
-The companion is the greatest compatible monotone closure operator. It subsumes all other compatible closures.
+The companion is the greatest compatible monotone closure operator. It is defined as the supremum over all closures that are both monotone and compatible with F.
 
 ```lean
 def companion (F : MonoRel α) : Rel α → Rel α :=
   ⨆ clo, (· : { clo // CloMono clo ∧ Compatible F clo}).val
 ```
 
-The companion satisfies several key properties. It is extensive, meaning `R ≤ companion F R`. It is compatible with F. It absorbs `gupaco`, meaning `gupaco_clo F (companion F) R ≤ companion F R`.
+The companion subsumes all other compatible closures. If a closure `clo` is compatible with F, then `clo R ≤ companion F R` for all R. This makes the companion a universal choice.
 
-Using the companion as your closure operator gives the most powerful up-to reasoning available for a given F.
+The companion satisfies three key properties. It is extensive, meaning `R ≤ companion F R`. It is compatible with F. It absorbs gupaco, meaning `gupaco_clo F (companion F) R ≤ companion F R`.
+
+In practice, the companion is useful when you do not know which specific closure to use. By choosing the companion, you get the maximum up-to reasoning power without committing to a particular closure.
 
 ## References
 

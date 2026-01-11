@@ -32,14 +32,14 @@ If you want paco-based proofs for QPF/ITree, use the integration package `paco-q
 
 ## Modules
 
-- **`Paco.Basic`**: Core definitions (`paco`, `upaco`, `MonoRel`) and lemmas
-- **`Paco.GPaco`**: Generalized paco with guarded parameters (`gpaco`, `gupaco`)
-- **`Paco.Tactic`**: Tactics for ergonomic proofs (`pfold`, `punfold`, `pstep`, `pbase`, etc.)
-- **`Paco.Coind`**: Ergonomic coinduction wrappers (`coind`, `gcoind`, `upto_coind`)
-- **`Paco.UpTo`**: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
-- **`Paco.UpTo.Respectful`**: Respectfulness lemmas (wrespectful/prespectful/grespectful)
-- **`Paco.Companion`**: Companion construction (greatest compatible closure)
-- **`Paco.Compat`**: Coq paco naming compatibility aliases
+The library is organized into core modules and up-to technique modules. See [Architecture Guide](docs/03-architecture.md) for detailed module descriptions.
+
+- `Paco.Basic`: Core definitions (`paco`, `upaco`, `MonoRel`) and lemmas
+- `Paco.GPaco`: Generalized paco with guarded parameters (`gpaco`, `gupaco`)
+- `Paco.Tactic`: Tactics for ergonomic proofs (`pfold`, `punfold`, `pstep`, `pbase`, etc.)
+- `Paco.Coind`: Ergonomic coinduction wrappers (`coind`, `gcoind`, `upto_coind`)
+- `Paco.UpTo`: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
+- `Paco.Companion`: Companion construction (greatest compatible closure)
 
 ## Installation
 
@@ -50,7 +50,7 @@ require paco from git
   "https://github.com/hxrts/paco-lean.git"@"main"
 ```
 
-See [docs/01-setup.md](docs/01-setup.md) for detailed setup instructions including Nix flake support.
+See [Setup Guide](docs/01-setup.md) for detailed setup instructions including Nix flake support.
 
 ## Usage
 

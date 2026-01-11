@@ -23,21 +23,21 @@ This distinction matters when certain facts would create circular reasoning if u
 
 ## Guard Release
 
-After one F-step, the guard releases. The usable hypothesis `gupaco F r g` includes both `r` and `g`.
+The guard releases after one F-step. When you unfold a gpaco goal with `gpfold`, the recursive positions receive `gupaco F r g` instead of `gpaco F r g`.
 
 ```lean
 def gupaco (F : MonoRel α) (r g : Rel α) : Rel α :=
   gpaco F r g ⊔ g
 ```
 
-This equals `upaco F (r ⊔ g)`. After unfolding, guarded facts join the available facts.
+The `gupaco` definition adds `g` to the available facts. This equals `upaco F (r ⊔ g)`, meaning after one step both `r` and `g` are accessible.
 
 ```lean
 theorem gupaco_eq_upaco (F : MonoRel α) (r g : Rel α) :
     gupaco F r g = upaco F (r ⊔ g)
 ```
 
-The transformation from gpaco to gupaco happens automatically when you unfold.
+The guard mechanism prevents using `g` before making progress. After the first F-step, the guard lifts and `g` joins the accumulator.
 
 ## Coinduction with GPaco
 
@@ -130,7 +130,19 @@ def StepF : MonoRel α :=
 
 This transformer allows either equality or a two-step chain through an intermediate element.
 
-Using gpaco, you can prove facts while accumulating intermediate results in the guard until they become available after the first step.
+Here is a complete proof using gpaco. The witness relation is equality, and the step function uses the left disjunct for the F-step.
+
+```lean
+theorem step_refl : gpaco StepF ⊥ ⊥ x x := by
+  apply gpaco_coind StepF (fun a b => a = b) ⊥ ⊥
+  · intro a b hab
+    left
+    subst hab
+    exact Or.inl rfl
+  · rfl
+```
+
+The proof chooses the F-step branch and provides equality. The guard and accumulator are both empty since no additional facts are needed.
 
 ## Accumulation with GPaco
 

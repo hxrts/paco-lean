@@ -4,9 +4,9 @@ This guide covers installation and configuration of paco-lean.
 
 ## Prerequisites
 
-You need Lean 4 and the Lake build tool. See the [Lean 4 installation guide](https://lean-lang.org/lean4/doc/setup.html) for setup instructions.
+You need Lean 4.26.0 or later and the Lake build tool. See the [Lean 4 installation guide](https://lean-lang.org/lean4/doc/setup.html) for setup instructions.
 
-Alternatively, use the provided Nix flake. Run `nix develop` from the repository root to enter a development shell with elan pre-configured.
+Alternatively, use the provided Nix flake. Run `nix develop` from the repository root to enter a development shell with the correct Lean version pre-configured.
 
 ```bash
 nix develop
@@ -33,7 +33,7 @@ Run `lake build` from your project root to compile the library.
 lake build
 ```
 
-Lake will download mathlib and other dependencies on first build. This process may take several minutes depending on your connection speed.
+Lake will download mathlib and other dependencies on first build. This process may take 5-15 minutes depending on your connection speed and whether mathlib cache is available. Subsequent builds are much faster.
 
 ## Running Tests
 
@@ -71,4 +71,4 @@ This fetches the latest versions specified in your lakefile.
 
 ## Next Steps
 
-See [Theoretical Foundations](02-theory.md) for the mathematical concepts behind paco. See [Basic Usage](04-basic-usage.md) for a tutorial on writing coinductive proofs.
+See [Theoretical Foundations](02-theory.md) for the mathematical concepts behind paco. See [Architecture Guide](03-architecture.md) for an overview of the module structure. See [Basic Usage Tutorial](04-basic-usage.md) for a tutorial on writing coinductive proofs.
