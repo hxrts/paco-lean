@@ -1,19 +1,30 @@
 # Paco-Lean build recipes
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Maximum threads for lake/lean builds
+max_threads := "3"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Build
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Default recipe: full build
 default: build
 
 # Full build
 build:
-    lake build
+    lake build -j{{max_threads}}
 
 # Quick build for core paco modules
 quick:
-    lake build Paco.Basic Paco.UpTo.Compat Paco.UpTo.Closures Paco.Companion
+    lake build -j{{max_threads}} Paco.Basic Paco.UpTo.Compat Paco.UpTo.Closures Paco.Companion
 
 # Build tests
 test:
-    lake build Tests
+    lake build -j{{max_threads}} Tests
 
 # Clean build artifacts
 clean:

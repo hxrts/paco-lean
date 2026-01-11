@@ -414,23 +414,18 @@ lemma infzeros_head_zero (s : Stream Nat) (h : infzeros s) :
     ∃ t, s = scons 0 t ∧ infzeros t := by
   unfold infzeros at h
   have h_unf := paco_unfold InfZerosF ⊥ s s h
-  simp only [upaco, Rel.sup_bot] at h_unf
+  rw [upaco_bot] at h_unf
   cases h_unf with
   | zo_step t hR =>
-    exists t
-    constructor
-    · rfl
-    · cases hR with
-      | inl hp => exact hp
-      | inr hbot => exact hbot.elim
+    exact ⟨t, rfl, hR⟩
 
 /-- Build infzeros from scons 0 and infzeros tail. -/
 lemma infzeros_scons_zero (t : Stream Nat) (h : infzeros t) : infzeros (scons 0 t) := by
   unfold infzeros at h ⊢
   apply paco_fold
   apply InfZerosStep.zo_step t
-  simp only [upaco, Rel.sup_bot]
-  exact Or.inl h
+  rw [upaco_bot]
+  exact h
 
 /-- Adding a zero prefix preserves seq on the left. -/
 lemma seq_zero_l (s1 s2 : Stream Nat) (h : seq s1 s2) : seq (scons 0 s1) s2 := by
@@ -449,7 +444,7 @@ lemma gseq_zero_l (s1 s2 : Stream Nat) (h : gseq s1 s2) : gseq (scons 0 s1) s2 :
   unfold gseq at h ⊢
   apply paco_fold
   have h_unf := paco_unfold GseqF ⊥ s1 s2 h
-  simp only [upaco, Rel.sup_bot] at h_unf
+  rw [upaco_bot] at h_unf
   cases h_unf with
   | gseq_inf _ _ hz1 hz2 =>
     apply GseqStep.gseq_inf (scons 0 s1) s2
@@ -463,15 +458,15 @@ lemma gseq_zero_l (s1 s2 : Stream Nat) (h : gseq s1 s2) : gseq (scons 0 s1) s2 :
       | gseq_nil => exact GseqConsOrNil.gseq_nil
       | gseq_cons n u1 u2 hR hNZ =>
         apply GseqConsOrNil.gseq_cons n u1 u2 _ hNZ
-        simp only [upaco, Rel.sup_bot]
-        exact Or.inl hR
+        rw [upaco_bot]
+        exact hR
 
 /-- Adding a zero prefix preserves gseq on the right. -/
 lemma gseq_zero_r (s1 s2 : Stream Nat) (h : gseq s1 s2) : gseq s1 (scons 0 s2) := by
   unfold gseq at h ⊢
   apply paco_fold
   have h_unf := paco_unfold GseqF ⊥ s1 s2 h
-  simp only [upaco, Rel.sup_bot] at h_unf
+  rw [upaco_bot] at h_unf
   cases h_unf with
   | gseq_inf _ _ hz1 hz2 =>
     apply GseqStep.gseq_inf s1 (scons 0 s2)
@@ -485,8 +480,8 @@ lemma gseq_zero_r (s1 s2 : Stream Nat) (h : gseq s1 s2) : gseq s1 (scons 0 s2) :
       | gseq_nil => exact GseqConsOrNil.gseq_nil
       | gseq_cons n u1 u2 hR hNZ =>
         apply GseqConsOrNil.gseq_cons n u1 u2 _ hNZ
-        simp only [upaco, Rel.sup_bot]
-        exact Or.inl hR
+        rw [upaco_bot]
+        exact hR
 
 /-- Extract nonzero property from GseqConsOrNil on left. -/
 lemma gseq_cons_or_nil_nonzero_l {R : Stream Nat → Stream Nat → Prop} {s1 s2 : Stream Nat}
@@ -899,16 +894,9 @@ theorem gseq_trans : ∀ d1 d2 d3, gseq d1 d2 → gseq d2 d3 → gseq d1 d3 := b
             left
             -- Need: ∃ m, paco GseqF ⊥ aL' m ∧ paco GseqF ⊥ m cR'
             -- Use bL' = bR' as the middle witness
-            simp only [upaco, Rel.sup_bot] at hRL hRR
-            cases hRL with
-            | inl hRL' =>
-              cases hRR with
-              | inl hRR' =>
-                exact ⟨bL', hRL', hRR'⟩
-              | inr hbot => exact hbot.elim
-            | inr hbot => exact hbot.elim
-  · exists d2
-    exact ⟨hL, hR⟩
+            rw [upaco_bot] at hRL hRR
+            exact ⟨bL', hRL, hRR⟩
+  · exact ⟨d2, hL, hR⟩
 
 /-!
 ## Transitivity of seq

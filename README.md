@@ -20,8 +20,6 @@ paco F r = gfp (fun R => F(R ∪ r))
 
 The parameter `r` accumulates facts during the proof and the coinductive hypothesis becomes `upaco F r = paco F r ∪ r`.
 
-Optional integration with QPF/ITree lives in a separate package (see `paco-qpf`). The core paco library itself is QPF-agnostic.
-
 ## Modules
 
 The library is organized into core modules and up-to technique modules. See [Architecture Guide](docs/03-architecture.md) for detailed module descriptions.
@@ -112,7 +110,6 @@ Guaranteed with additional assumptions:
 
 - [The Power of Parameterization in Coinductive Proof (POPL 2013)](https://plv.mpi-sws.org/paco/)
 - [An Equational Theory for Weak Bisimulation via Generalized Parameterized Coinduction (CPP 2020)](https://paulhe.com/assets/gpaco.pdf)
-- [Interaction Trees (POPL 2020)](https://github.com/DeepSpec/InteractionTrees)
 
 ## License
 
