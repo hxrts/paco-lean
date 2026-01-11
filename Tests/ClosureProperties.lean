@@ -1,15 +1,18 @@
 import Paco
 
 /-!
-# New Features Tests
+# Closure Properties Tests
 
-Tests for newly added features:
-- GPaco tactics (ginit, gstep, gbase, gfinal, gclo)
+Tests for closure operations and properties:
 - Closure union operations
+- Closure containment lemmas
+- Closure idempotence and absorption
+- Closure composition
 - Coq naming aliases
+- GPaco tactics (gbase, gstep)
 -/
 
-namespace Paco.Tests.NewFeatures
+namespace Paco.Tests.ClosureProperties
 
 open Paco
 
@@ -178,4 +181,4 @@ theorem test_eqvClosure_symmClosure (R : Rel α) :
 theorem test_cloMono_comp : CloMono (reflClosure (α := α) ∘ symmClosure) :=
   cloMono_comp reflClosure_mono symmClosure_mono
 
-end Paco.Tests.NewFeatures
+end Paco.Tests.ClosureProperties
