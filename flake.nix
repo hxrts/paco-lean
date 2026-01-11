@@ -29,6 +29,7 @@
           # Documentation
           mdbook
           mdbook-mermaid
+          mdbook-toc
 
           # Link checking
           lychee

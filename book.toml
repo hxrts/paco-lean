@@ -16,3 +16,6 @@ mathjax-support = true
 editable = false
 
 [preprocessor.mermaid]
+
+[preprocessor.toc]
+max-level = 2
