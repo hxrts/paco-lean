@@ -149,6 +149,7 @@ underlying type. This makes tag preservation explicit and avoids losing branch
 information during case splits.
 -/
 
+/-- Tagged sum used to track guarded and unguarded branches. --/
 def Tag (α : Type*) := Sum α α
 
 /-- Tag a relation on the left side of `Sum`. -/

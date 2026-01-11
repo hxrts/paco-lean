@@ -127,13 +127,11 @@ theorem paco_le_gpaco (F : MonoRel α) (r g : Rel α) :
   le_sup_left
 
 /-- gpaco injects into gupaco -/
-@[simp]
 theorem gpaco_le_gupaco (F : MonoRel α) (r g : Rel α) :
     gpaco F r g ≤ gupaco F r g :=
   le_sup_left
 
 /-- g injects into gupaco (guard released) -/
-@[simp]
 theorem g_le_gupaco (F : MonoRel α) (r g : Rel α) : g ≤ gupaco F r g :=
   le_sup_right
 

@@ -49,12 +49,12 @@ theorem gpaco_step_bot_g (F : MonoRel α) (r : Rel α) :
     _ = F (upaco F r) ⊔ r := by rw [paco_eq]
 
 /-- gupaco at ⊥ guard simplifies to upaco -/
-@[simp] theorem gupaco_bot_g (F : MonoRel α) (r : Rel α) :
+theorem gupaco_bot_g (F : MonoRel α) (r : Rel α) :
     gupaco F r ⊥ = upaco F r := by
   simp only [gupaco, gpaco_bot_g, Rel.sup_bot]
 
 /-- gupaco at ⊥ available parameter -/
-@[simp] theorem gupaco_bot_r (F : MonoRel α) (g : Rel α) :
+theorem gupaco_bot_r (F : MonoRel α) (g : Rel α) :
     gupaco F ⊥ g = upaco F g := by
   simp only [gupaco_eq_upaco, Rel.bot_sup]
 
@@ -63,11 +63,11 @@ theorem gpaco_step_bot_g (F : MonoRel α) (r : Rel α) :
 -/
 
 /-- Simplify double sup with same relation -/
-@[simp] theorem sup_sup_self (R S : Rel α) : (R ⊔ S) ⊔ S = R ⊔ S := by
+theorem sup_sup_self (R S : Rel α) : (R ⊔ S) ⊔ S = R ⊔ S := by
   ext x y; simp only [Rel.union_apply]; tauto
 
 /-- Simplify self sup double -/
-@[simp] theorem self_sup_sup (R S : Rel α) : R ⊔ (R ⊔ S) = R ⊔ S := by
+theorem self_sup_sup (R S : Rel α) : R ⊔ (R ⊔ S) = R ⊔ S := by
   ext x y; simp only [Rel.union_apply]; tauto
 
 /-!

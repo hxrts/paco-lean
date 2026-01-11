@@ -8,6 +8,7 @@ namespace Paco
 
 variable {α : Type*}
 
+/-- Generalized respectfulness for `clo` with respect to `F`. --/
 structure GRespectful (F : MonoRel α) (clo : Rel α → Rel α) : Prop where
   /-- The closure is monotone -/
   mon : CloMono clo

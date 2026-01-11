@@ -9,6 +9,7 @@ namespace Paco
 
 variable {α : Type*}
 
+/-- Paco respectfulness for `clo` with respect to `F`. --/
 structure PRespectful (F : MonoRel α) (clo : Rel α → Rel α) : Prop where
   /-- The closure is monotone -/
   mon : CloMono clo
@@ -198,6 +199,7 @@ class PrespectRightGuarded (F : MonoRel α) (clo : Rel α → Rel α) : Prop whe
 theorem prespect_compatible'_tagged (F : MonoRel α) {clo : Rel α → Rel α}
     (_h : PRespectful F clo) [TagRoundtrip F clo] [PrespectRightGuarded F clo] :
     Compatible' F (prespectClosure F clo) := by
+  have _ := _h.mon
   intro R
   have hround := TagRoundtrip.h (F := F) (clo := clo) R (F R)
   have hsplit :
@@ -321,7 +323,7 @@ theorem prespect_compatible'_inflationary (F : MonoRel α) [Inflationary F]
 
 
 /-- If F is inflationary, strong respectfulness yields right-branch guardedness. --/
-instance prespectRightGuarded_of_inflationary (F : MonoRel α) [Inflationary F]
+theorem prespectRightGuarded_of_inflationary (F : MonoRel α) [Inflationary F]
     {clo : Rel α → Rel α} (h : PRespectfulStrong F clo) :
     PrespectRightGuarded F clo :=
   ⟨by

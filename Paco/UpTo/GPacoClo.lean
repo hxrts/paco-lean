@@ -284,6 +284,8 @@ theorem gpaco_clo_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
     (_h_mono : CloMono clo) (_h_compat : Compatible F clo)
     (r rg : Rel α) :
     gupaco_clo F clo (gpaco_clo F clo r rg) ≤ gpaco_clo F clo r rg := by
+  have _ := _h_mono
+  have _ := _h_compat
   let G := gpaco_clo F clo r rg
   let P := composeRclo F clo
   -- gupaco G = rclo clo (paco P (G ⊔ G) ⊔ G) = rclo clo (paco P G ⊔ G)

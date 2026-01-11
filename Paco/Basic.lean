@@ -145,11 +145,9 @@ theorem sup_le_sup_left_rel {R S T : Rel α} (h : R ≤ S) : R ⊔ T ≤ S ⊔ T
 theorem sup_le_sup_right_rel {R S T : Rel α} (h : R ≤ S) : T ⊔ R ≤ T ⊔ S :=
   sup_le_sup (Rel.le_refl _) h
 
-@[simp]
 theorem sup_bot (R : Rel α) : R ⊔ ⊥ = R := by
   ext x y; simp
 
-@[simp]
 theorem bot_sup (R : Rel α) : ⊥ ⊔ R = R := by
   ext x y; simp
 
@@ -160,19 +158,19 @@ theorem bot_sup (R : Rel α) : ⊥ ⊔ R = R := by
 /-- Scoped notation for relation subset -/
 scoped infixl:50 " ⊆ᵣ " => Rel.le
 
-@[simp] theorem sup_assoc (R S T : Rel α) : (R ⊔ S) ⊔ T = R ⊔ (S ⊔ T) := by
+theorem sup_assoc (R S T : Rel α) : (R ⊔ S) ⊔ T = R ⊔ (S ⊔ T) := by
   ext x y; simp only [union_apply]; tauto
 
-@[simp] theorem sup_comm (R S : Rel α) : R ⊔ S = S ⊔ R := by
+theorem sup_comm (R S : Rel α) : R ⊔ S = S ⊔ R := by
   ext x y; simp only [union_apply]; tauto
 
-@[simp] theorem sup_idem (R : Rel α) : R ⊔ R = R := by
+theorem sup_idem (R : Rel α) : R ⊔ R = R := by
   ext x y; simp only [union_apply]; tauto
 
-@[simp] theorem inf_bot (R : Rel α) : R ⊓ ⊥ = ⊥ := by
+theorem inf_bot (R : Rel α) : R ⊓ ⊥ = ⊥ := by
   ext x y; simp
 
-@[simp] theorem bot_inf (R : Rel α) : ⊥ ⊓ R = ⊥ := by
+theorem bot_inf (R : Rel α) : ⊥ ⊓ R = ⊥ := by
   ext x y; simp
 
 end Rel
@@ -397,7 +395,6 @@ theorem r_le_upaco {α : Type*} (F : MonoRel α) (r : Rel α) :
   le_sup_right
 
 /-- upaco is idempotent in a sense -/
-@[simp]
 theorem upaco_sup_r {α : Type*} (F : MonoRel α) (r : Rel α) :
     upaco F r ⊔ r = upaco F r := by
   simp only [upaco, sup_assoc, sup_idem]

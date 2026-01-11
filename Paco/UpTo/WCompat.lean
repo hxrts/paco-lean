@@ -290,6 +290,7 @@ When clo is compatible, gpaco_clo proofs can be converted to standard paco proof
 theorem gfp_closed_clo (F : MonoRel α) (clo : Rel α → Rel α)
     (_h_mono : CloMono clo) (h_compat : Compatible F clo) :
     clo F.toOrderHom.gfp ≤ F.toOrderHom.gfp := by
+  have _ := _h_mono
   intro x y hclo
   -- clo (gfp F) x y
   -- gfp F = F (gfp F), so clo (gfp F) ≤ clo (F (gfp F))
