@@ -111,6 +111,7 @@ Guaranteed with additional assumptions:
 - [Basic Usage Tutorial](docs/04-basic-usage.md)
 - [GPaco & Guards Tutorial](docs/05-gpaco-guide.md)
 - [Up-To Techniques Guide](docs/06-upto-guide.md)
+- [Differences from Coq Paco](docs/07-coq-differences.md)
 
 ## References
 
