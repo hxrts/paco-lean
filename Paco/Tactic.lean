@@ -650,7 +650,7 @@ theorem upTo_bisim : gpaco_clo Bisim transClo ⊥ ⊥ p q := by
 -/
 macro "gcofix" ih:ident : tactic =>
   `(tactic| first
-    | (apply Paco.gpaco_clo_coind _ _ _ _ ?R
+    | (apply Paco.gpaco_clo_coind' _ _ _ _ ?R
        case OBG => intro _rr _INC _CIH _ _ $ih)
     | fail "gcofix: expected goal `gpaco_clo F clo r rg x y`")
 

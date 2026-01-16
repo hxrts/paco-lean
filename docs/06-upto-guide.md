@@ -159,6 +159,8 @@ theorem gpaco_clo_cofix (F : MonoRel α) (clo : Rel α → Rel α)
 
 The step function receives `rclo clo (R ⊔ upaco (composeRclo F clo) (rg ⊔ r))` for recursive calls. This allows applying the closure during recursion.
 
+The library also provides `gpaco_clo_coind'` as a pointwise variant. This theorem applies the witness relation to the goal points directly. It avoids the need to manually apply the resulting relation to `x` and `y`.
+
 ## The Companion
 
 The companion is the greatest compatible monotone closure. It subsumes all other compatible closures for a given F.

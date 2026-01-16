@@ -110,6 +110,35 @@ theorem test_gpaco_clo_coind (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := b
   · exact heq
   · rfl
 
+/-- Test gpaco_clo_coind': pointwise coinduction principle -/
+theorem test_gpaco_clo_coind' (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := by
+  apply gpaco_clo_coind' (TestF α) id ⊥ ⊥ (fun a b => a = b)
+  · intro rr _INC _CIH a b heq
+    apply rclo.base
+    left
+    apply paco_coind (composeRclo (TestF α) id) (fun u v => u = v) (rr ⊔ ⊥)
+    · intro u v huv
+      simp only [composeRclo_def, rclo.rclo_id, Rel.sup_bot]
+      left; exact huv
+    · exact heq
+  · rfl
+
+/-- Test that gpaco_clo_coind' produces the expected coinduction goal -/
+theorem test_gpaco_clo_coind'_goal (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := by
+  -- The witness relation is equality
+  refine gpaco_clo_coind' (TestF α) id ⊥ ⊥ (fun a b => a = b) ?OBG ?hxy
+  case OBG =>
+    intro rr _INC _CIH a b heq
+    apply rclo.base
+    left
+    apply paco_coind (composeRclo (TestF α) id) (fun u v => u = v) (rr ⊔ ⊥)
+    · intro u v huv
+      simp only [composeRclo_def, rclo.rclo_id, Rel.sup_bot]
+      left; exact huv
+    · exact heq
+  case hxy =>
+    rfl
+
 /-!
 ## Closure composition tests
 -/

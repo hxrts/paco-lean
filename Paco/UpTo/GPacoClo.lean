@@ -193,6 +193,16 @@ theorem gpaco_clo_coind (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel �
   -- Then rclo.rclo_rclo collapses the nested rclo
   exact rclo.rclo_rclo x y (rclo.mono h_inner x y hgpaco)
 
+/-- Pointwise coinduction for gpaco_clo.
+
+This is the pointwise version of `gpaco_clo_coind`, analogous to `paco_coind`.
+It avoids needing to apply the resulting relation to `x y` manually. -/
+theorem gpaco_clo_coind' (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
+    (l : Rel α) {x y : α}
+    (OBG : ∀ rr, rg ≤ rr → l ≤ rr → l ≤ gpaco_clo F clo r rr)
+    (hxy : l x y) : gpaco_clo F clo r rg x y :=
+  (gpaco_clo_coind F clo r rg l OBG) x y hxy
+
 /-- Simple coinduction for gpaco_clo: prove via paco with F-progress.
 
 To prove `gpaco_clo F clo r rg x y`, find R with R x y such that
