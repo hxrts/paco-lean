@@ -137,9 +137,7 @@ example : paco Bisim r p q := by
 - `pstep`: when goal is `upaco` instead of `paco`
 -/
 macro "pfold" : tactic =>
-  `(tactic| first
-    | apply Paco.paco_fold
-    | fail "pfold: expected goal `paco F r x y`. If goal is `upaco F r x y`, use `pstep` instead.")
+  `(tactic| apply Paco.paco_fold)
 
 /-- Reverse of pfold: convert F-structure goal to paco goal.
 
@@ -167,9 +165,7 @@ example : F (upaco F r) x y := by
 - `punfold_reverse`: the hypothesis version
 -/
 macro "pfold_reverse" : tactic =>
-  `(tactic| first
-    | apply Paco.paco_unfold
-    | fail "pfold_reverse: expected goal `F (upaco F r) x y`")
+  `(tactic| apply Paco.paco_unfold)
 
 /-- Unfold a gpaco hypothesis to expose structure.
 
@@ -196,9 +192,7 @@ macro "gpunfold" h:ident : tactic =>
 Converts goal to `⊢ F (gupaco F r g) x y`
 -/
 macro "gpfold" : tactic =>
-  `(tactic| first
-    | apply Paco.gpaco_fold
-    | fail "gpfold: expected goal `gpaco F r g x y`")
+  `(tactic| apply Paco.gpaco_fold)
 
 /-!
 ## Progress Tactics
@@ -342,11 +336,7 @@ Then by Knaster-Tarski, `R ≤ gfp (λ X. F (X ⊔ r)) = paco F r`.
 - `pstep`/`pbase`: for recursive vs base cases in the step
 -/
 macro "pcofix" ih:ident : tactic =>
-  `(tactic| first
-    | (apply Paco.paco_coind _ ?R _
-       case hpost => intro _ _ $ih
-       case hxy => ?_)
-    | fail "pcofix: expected goal `paco F r x y`")
+  `(tactic| (apply Paco.paco_coind _ ?R _; intro _ _ $ih))
 
 /-- Low-level coinduction with explicit control over naming.
 
@@ -379,11 +369,7 @@ Like `pcofix` but for generalized paco with guard parameter `g`.
 - `gpfold`, `gpunfold`: for working with gpaco hypotheses
 -/
 macro "gpcofix" ih:ident : tactic =>
-  `(tactic| first
-    | (apply Paco.gpaco_coind _ ?R _ _ _ _
-       case hpost => intro _ _ $ih
-       case hxy => ?_)
-    | fail "gpcofix: expected goal `gpaco F r g x y`")
+  `(tactic| (apply Paco.gpaco_coind _ ?R _ _ _ _; intro _ _ $ih))
 
 /-!
 ## Accumulation Tactics
@@ -649,10 +635,7 @@ theorem upTo_bisim : gpaco_clo Bisim transClo ⊥ ⊥ p q := by
 - `ginit`, `gstep`, `gclo`: for working with gpaco_clo
 -/
 macro "gcofix" ih:ident : tactic =>
-  `(tactic| first
-    | (apply Paco.gpaco_clo_coind' _ _ _ _ ?R
-       case OBG => intro _rr _INC _CIH _ _ $ih)
-    | fail "gcofix: expected goal `gpaco_clo F clo r rg x y`")
+  `(tactic| (apply Paco.gpaco_clo_coind' _ _ _ _ ?R; intro _rr _INC _CIH _ _ $ih))
 
 /-- Low-level gpaco_clo coinduction using the simpler cofix principle.
 
@@ -670,10 +653,7 @@ This is more direct but less flexible than `gcofix`.
 - `gcofix`: for the full coinduction principle with closure accumulation
 -/
 macro "gcofix'" ih:ident : tactic =>
-  `(tactic| first
-    | (apply Paco.gpaco_clo_cofix _ _ _ _ ?R _
-       case hR => intro _ _ $ih)
-    | fail "gcofix': expected goal `gpaco_clo F clo r rg x y`")
+  `(tactic| (apply Paco.gpaco_clo_cofix _ _ _ _ ?R _; intro _ _ $ih))
 
 /-!
 ## Monotonicity Automation

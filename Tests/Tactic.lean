@@ -101,6 +101,13 @@ theorem test_paco_coind_custom {R : Rel α} (hR : ∀ a b, R a b → (TestF α) 
   · exact hxy
 
 /-!
+## pcofix tactic tests
+
+TODO: Add full tactic usage tests. The key fix was removing `first` which required
+complete goal solving. The tactics now successfully apply and leave goals open for the user.
+-/
+
+/-!
 ## GPaco theorem tests
 -/
 
