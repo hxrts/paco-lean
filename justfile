@@ -4,10 +4,15 @@
 # Configuration
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Maximum threads for lake/lean builds (via LEAN_NUM_THREADS)
-max_threads := "3"
+# `lean-toolchain` is the single source of truth, so every recipe runs the
+# Lean and Lake that file names even when the shell selected another.
+export ELAN_TOOLCHAIN := `tr -d '\r\n' < lean-toolchain`
 
-export LEAN_NUM_THREADS := max_threads
+# Worker count for a degraded, uncoordinated run. When a sibling lean-builder
+# coordinator is available it grants the count instead.
+export LEAN_NUM_THREADS := env_var_or_default("LEAN_NUM_THREADS", "3")
+
+lean_build := "python3 tools/run_lean_build.py"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Build
@@ -16,17 +21,28 @@ export LEAN_NUM_THREADS := max_threads
 # Default recipe: full build
 default: build
 
+# Restore mathlib from Lake's configured cache first; on a genuine miss, fall
+# back to mathlib's prebuilt cache. Never compiles mathlib.
+_mathlib-cache:
+    @if [ ! -f .lake/packages/mathlib/.lake/build/lib/lean/Mathlib.olean ]; then lake build Mathlib --no-build >/dev/null 2>&1 || true; fi
+    @if [ ! -f .lake/packages/mathlib/.lake/build/lib/lean/Mathlib.olean ]; then {{lean_build}} --label "fetch mathlib cache" -- lake exe cache get; fi
+    @test -f .lake/packages/mathlib/.lake/build/lib/lean/Mathlib.olean || { echo "mathlib cache missing" >&2; exit 1; }
+
 # Full build
-build:
-    lake build
+build: _mathlib-cache
+    {{lean_build}} --label "build Paco" -- lake build
 
 # Quick build for core paco modules
-quick:
-    lake build Paco.Basic Paco.UpTo.Compat Paco.UpTo.Closures Paco.Companion
+quick: _mathlib-cache
+    {{lean_build}} --label "build Paco core" -- lake build Paco.Basic Paco.UpTo.Compat Paco.UpTo.Closures Paco.Companion
 
 # Build tests
-test:
-    lake build Tests
+test: _mathlib-cache
+    {{lean_build}} --label "build Tests" -- lake build Tests
+
+# Reject Lake build recipes that skip the launcher
+check-launcher:
+    python3 tools/check_build_launcher.py
 
 # Clean build artifacts
 clean:
@@ -127,6 +143,6 @@ link-check-external:
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Run all CI checks locally (dry run)
-ci-dry-run: build test book link-check
+ci-dry-run: check-launcher build test book link-check
     @echo ""
     @echo "✓ All CI checks passed"

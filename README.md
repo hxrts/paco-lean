@@ -44,6 +44,23 @@ require paco from git
 
 See [Setup Guide](docs/01-setup.md) for detailed setup instructions including Nix flake support.
 
+### Shared build cache (optional)
+
+The dev shell enables Lake's content-addressed artifact cache and keeps
+artifacts materialized under `.lake/build`. If a sibling `../lean-builder/`
+checkout exists, the shell also joins that machine-local shared cache, so
+dependency artifacts such as mathlib are built once for every project on the
+machine. This works the same through `nix develop` or direnv.
+
+The cache is optional. Without that directory Lake uses its own per-toolchain
+default cache, and `LAKE_ARTIFACT_CACHE=false` disables the feature. A miss is
+never fatal: Lake builds locally and stores the result.
+
+Every `just` Lean build goes through `tools/run_lean_build.py`. With a
+compatible `lean-builder` it obtains a machine-wide memory grant and applies
+the granted `LEAN_NUM_THREADS`; otherwise it announces degraded operation and
+uses a checkout-local lock with the local thread cap.
+
 ## Usage
 
 ```lean
