@@ -617,8 +617,8 @@ local instance tagRoundtrip_bot_id {α : Type*} : TagRoundtrip (BotF α) idClosu
 local instance prespectRightGuarded_bot_id {α : Type*} : PrespectRightGuarded (BotF α) idClosure :=
   ⟨by
     intro R x y h
-    exact False.elim (by
-      simpa [prespectClosure_bot_id] using h)
+    rw [prespectClosure_bot_id] at h
+    exact False.elim h
   ⟩
 
 /-- A concrete use of `TagRoundtrip` to obtain compatibility. -/
