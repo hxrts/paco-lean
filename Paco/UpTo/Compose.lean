@@ -45,14 +45,14 @@ theorem clo_le_cloUnion_right (clo₁ clo₂ : Rel α → Rel α) (R : Rel α) :
     clo₂ R ≤ (clo₁ ⊔ᶜ clo₂) R :=
   fun _ _ h => Or.inr h
 
-/-- gupaco_clo is monotone in the closure operator.
+/-- gupacoClo is monotone in the closure operator.
 
-If clo₁ ≤ clo₂ pointwise, then gupaco_clo F clo₁ R ≤ gupaco_clo F clo₂ R.
+If clo₁ ≤ clo₂ pointwise, then gupacoClo F clo₁ R ≤ gupacoClo F clo₂ R.
 This is the key lemma for proving wcompat_union. -/
-theorem gupaco_clo_mono_clo (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
+theorem gupacoClo_mono_clo (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
     (h_clo : ∀ R, clo₁ R ≤ clo₂ R) (R : Rel α) :
-    gupaco_clo F clo₁ R ≤ gupaco_clo F clo₂ R := by
-  -- gupaco_clo F clo R = rclo clo (paco (composeRclo F clo) R ⊔ R)
+    gupacoClo F clo₁ R ≤ gupacoClo F clo₂ R := by
+  -- gupacoClo F clo R = rclo clo (paco (composeRclo F clo) R ⊔ R)
   -- Need to show both:
   -- 1. rclo clo₁ ≤ rclo clo₂ (via rclo.mono_clo)
   -- 2. paco (composeRclo F clo₁) R ≤ paco (composeRclo F clo₂) R (via paco_mon_gen)
@@ -63,7 +63,7 @@ theorem gupaco_clo_mono_clo (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
       simp only [composeRclo_def] at hFrclo ⊢
       exact F.mono' (h_rclo_clo_le S) x y hFrclo
     · exact Rel.le_refl R
-  simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+  simp only [gupacoClo_def, gpacoClo_def, sup_idem]
   intro x y hrclo
   -- hrclo : rclo clo₁ (paco (composeRclo F clo₁) R ⊔ R) x y
   -- Goal: rclo clo₂ (paco (composeRclo F clo₂) R ⊔ R) x y
@@ -83,18 +83,18 @@ theorem wcompat_union (F : MonoRel α) {clo₁ clo₂ : Rel α → Rel α}
   cases h with
   | inl h₁r =>
     -- h₁r : clo₁ (F R) x y
-    -- From h₁: clo₁ (F R) ≤ F (gupaco_clo F clo₁ R)
+    -- From h₁: clo₁ (F R) ≤ F (gupacoClo F clo₁ R)
     have h_step := h₁ R x y h₁r
-    -- h_step : F (gupaco_clo F clo₁ R) x y
-    -- Need: F (gupaco_clo F (clo₁ ⊔ᶜ clo₂) R) x y
-    have h_mono : gupaco_clo F clo₁ R ≤ gupaco_clo F (clo₁ ⊔ᶜ clo₂) R :=
-      gupaco_clo_mono_clo F (fun S => clo_le_cloUnion_left clo₁ clo₂ S) R
+    -- h_step : F (gupacoClo F clo₁ R) x y
+    -- Need: F (gupacoClo F (clo₁ ⊔ᶜ clo₂) R) x y
+    have h_mono : gupacoClo F clo₁ R ≤ gupacoClo F (clo₁ ⊔ᶜ clo₂) R :=
+      gupacoClo_mono_clo F (fun S => clo_le_cloUnion_left clo₁ clo₂ S) R
     exact F.mono' h_mono x y h_step
   | inr h₂r =>
     -- h₂r : clo₂ (F R) x y
     have h_step := h₂ R x y h₂r
-    have h_mono : gupaco_clo F clo₂ R ≤ gupaco_clo F (clo₁ ⊔ᶜ clo₂) R :=
-      gupaco_clo_mono_clo F (fun S => clo_le_cloUnion_right clo₁ clo₂ S) R
+    have h_mono : gupacoClo F clo₂ R ≤ gupacoClo F (clo₁ ⊔ᶜ clo₂) R :=
+      gupacoClo_mono_clo F (fun S => clo_le_cloUnion_right clo₁ clo₂ S) R
     exact F.mono' h_mono x y h_step
 
 /-!

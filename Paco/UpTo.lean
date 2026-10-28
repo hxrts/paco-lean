@@ -19,8 +19,8 @@ the generating function with a reflexive-transitive closure operator.
 The gpaco framework extends paco by:
 1. `rclo clo R`: Reflexive-transitive closure under closure operator `clo`
 2. Modified generating function: `F ∘ rclo clo`
-3. `gpaco_clo clo r rg = rclo clo (paco (F ∘ rclo clo) (rg ⊔ r) ⊔ r)`
-4. `gupaco_clo clo r = gpaco_clo clo r r`
+3. `gpacoClo clo r rg = rclo clo (paco (F ∘ rclo clo) (rg ⊔ r) ⊔ r)`
+4. `gupacoClo clo r = gpacoClo clo r r`
 
 ## Main Definitions
 
@@ -28,8 +28,8 @@ The gpaco framework extends paco by:
 - `Compatible F clo`: Property that clo (F R) ≤ F (clo R)
 - `WCompatible F clo`: Weaker version using gupaco
 - `cpn F`: Companion (greatest compatible closure)
-- `gpaco_clo F clo r rg`: Generalized paco with user-defined closure
-- `gupaco_clo F clo r`: Symmetric version (guard = accumulator)
+- `gpacoClo F clo r rg`: Generalized paco with user-defined closure
+- `gupacoClo F clo r`: Symmetric version (guard = accumulator)
 
 ## Modules
 

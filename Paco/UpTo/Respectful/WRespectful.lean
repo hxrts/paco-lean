@@ -190,14 +190,14 @@ theorem wrespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
     compatible'_le_companion F (rclo_mono clo) h_compat' R
   exact Rel.le_trans h1 h2
 
-/-- Weak respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
+/-- Weak respectfulness uclo lemma: clo R ≤ gupacoClo F (companion F) R -/
 theorem wrespect_uclo (F : MonoRel α) {clo : Rel α → Rel α}
     (h : WRespectfulExt F clo) [ExtCompatImpliesCompat F] (R : Rel α) :
-    clo R ≤ gupaco_clo F (companion F) R := by
+    clo R ≤ gupacoClo F (companion F) R := by
   intro x y hclo
   have h1 : clo R ≤ companion F R := wrespect_companion F h R
-  -- companion F R ≤ gupaco_clo F (companion F) R by companion_gupaco_eq
-  have h2 : companion F R = gupaco_clo F (companion F) R := (companion_gupaco_eq F R).symm
+  -- companion F R ≤ gupacoClo F (companion F) R by companion_gupaco_eq
+  have h2 : companion F R = gupacoClo F (companion F) R := (companion_gupaco_eq F R).symm
   rw [← h2]
   exact h1 x y hclo
 

@@ -1,23 +1,23 @@
 import Paco.UpTo.Cpn
 
 /-!
-# GPaco with Closure (gpaco_clo)
+# GPaco with Closure (gpacoClo)
 
 The full gpaco definition following Coq:
-  gpaco_clo clo r rg = rclo clo (paco (F ∘ rclo clo) (rg ⊔ r) ⊔ r)
+  gpacoClo clo r rg = rclo clo (paco (F ∘ rclo clo) (rg ⊔ r) ⊔ r)
 
 ## Main Definitions
 
 - `composeRclo F clo`: Composed generating function F ∘ rclo clo
-- `gpaco_clo F clo r rg`: Generalized paco with user-defined closure
-- `gupaco_clo F clo r`: Symmetric version (guard = accumulator)
+- `gpacoClo F clo r rg`: Generalized paco with user-defined closure
+- `gupacoClo F clo r`: Symmetric version (guard = accumulator)
 - `WCompatible F clo`: Weak compatibility
 
 ## Key Theorems
 
-- `gpaco_clo_coind`: Full coinduction principle (Coq's gpacoN_cofix)
-- `gpaco_clo_gupaco`: Gupaco absorption into gpaco
-- `gpaco_clo_final`: GPaco is contained in gfp when clo is compatible
+- `gpacoClo_coind`: Full coinduction principle (Coq's gpacoN_cofix)
+- `gpacoClo_gupaco`: Gupaco absorption into gpaco
+- `gpacoClo_final`: GPaco is contained in gfp when clo is compatible
 
 ## References
 
@@ -49,103 +49,103 @@ theorem composeRclo_def (F : MonoRel α) (clo : Rel α → Rel α) (R : Rel α) 
     composeRclo F clo R = F (rclo clo R) := rfl
 
 /-!
-## GPaco with Closure (gpaco_clo)
+## GPaco with Closure (gpacoClo)
 -/
 
 /-- Generalized paco with user-defined closure operator.
 
-`gpaco_clo F clo r rg` is the main predicate for up-to coinduction:
+`gpacoClo F clo r rg` is the main predicate for up-to coinduction:
 - `clo`: User closure operator (e.g., congruence, transitivity)
 - `r`: Accumulator (immediately available facts)
 - `rg`: Guard (facts available after progress)
 
 Definition: rclo clo (paco (F ∘ rclo clo) (rg ⊔ r) ⊔ r) -/
-def gpaco_clo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) : Rel α :=
+def gpacoClo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) : Rel α :=
   rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)
 
 /-- Symmetric version: guard equals accumulator -/
-def gupaco_clo (F : MonoRel α) (clo : Rel α → Rel α) (r : Rel α) : Rel α :=
-  gpaco_clo F clo r r
+def gupacoClo (F : MonoRel α) (clo : Rel α → Rel α) (r : Rel α) : Rel α :=
+  gpacoClo F clo r r
 
 /-!
-## GPaco_clo Basic Properties
+## gpacoClo Basic Properties
 -/
 
-theorem gpaco_clo_def (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) :
-    gpaco_clo F clo r rg = rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) := rfl
+theorem gpacoClo_def (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) :
+    gpacoClo F clo r rg = rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) := rfl
 
-theorem gupaco_clo_def (F : MonoRel α) (clo : Rel α → Rel α) (r : Rel α) :
-    gupaco_clo F clo r = gpaco_clo F clo r r := rfl
+theorem gupacoClo_def (F : MonoRel α) (clo : Rel α → Rel α) (r : Rel α) :
+    gupacoClo F clo r = gpacoClo F clo r r := rfl
 
-/-- r injects into gpaco_clo -/
-theorem r_le_gpaco_clo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) :
-    r ≤ gpaco_clo F clo r rg := by
+/-- r injects into gpacoClo -/
+theorem r_le_gpacoClo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) :
+    r ≤ gpacoClo F clo r rg := by
   intro x y hr
   exact rclo.base (Or.inr hr)
 
-/-- paco (F ∘ rclo clo) (rg ⊔ r) injects into gpaco_clo -/
-theorem paco_le_gpaco_clo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) :
-    paco (composeRclo F clo) (rg ⊔ r) ≤ gpaco_clo F clo r rg := by
+/-- paco (F ∘ rclo clo) (rg ⊔ r) injects into gpacoClo -/
+theorem paco_le_gpacoClo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) :
+    paco (composeRclo F clo) (rg ⊔ r) ≤ gpacoClo F clo r rg := by
   intro x y hp
   exact rclo.base (Or.inl hp)
 
-/-- gpaco_clo is monotone in r -/
-theorem gpaco_clo_mon_r (F : MonoRel α) (clo : Rel α → Rel α) (rg : Rel α)
-    {r r' : Rel α} (hr : r ≤ r') : gpaco_clo F clo r rg ≤ gpaco_clo F clo r' rg := by
-  unfold gpaco_clo
+/-- gpacoClo is monotone in r -/
+theorem gpacoClo_mon_r (F : MonoRel α) (clo : Rel α → Rel α) (rg : Rel α)
+    {r r' : Rel α} (hr : r ≤ r') : gpacoClo F clo r rg ≤ gpacoClo F clo r' rg := by
+  unfold gpacoClo
   apply rclo.mono
   apply sup_le_sup
   · exact paco_mon (composeRclo F clo) (sup_le_sup_left hr rg)
   · exact hr
 
-/-- gpaco_clo is monotone in rg -/
-theorem gpaco_clo_mon_rg (F : MonoRel α) (clo : Rel α → Rel α) (r : Rel α)
-    {rg rg' : Rel α} (hrg : rg ≤ rg') : gpaco_clo F clo r rg ≤ gpaco_clo F clo r rg' := by
-  unfold gpaco_clo
+/-- gpacoClo is monotone in rg -/
+theorem gpacoClo_mon_rg (F : MonoRel α) (clo : Rel α → Rel α) (r : Rel α)
+    {rg rg' : Rel α} (hrg : rg ≤ rg') : gpacoClo F clo r rg ≤ gpacoClo F clo r rg' := by
+  unfold gpacoClo
   apply rclo.mono
   apply sup_le_sup_right
   exact paco_mon (composeRclo F clo) (sup_le_sup_right hrg r)
 
-/-- gpaco_clo is monotone in both r and rg -/
-theorem gpaco_clo_mon (F : MonoRel α) (clo : Rel α → Rel α)
+/-- gpacoClo is monotone in both r and rg -/
+theorem gpacoClo_mon (F : MonoRel α) (clo : Rel α → Rel α)
     {r r' rg rg' : Rel α} (hr : r ≤ r') (hrg : rg ≤ rg') :
-    gpaco_clo F clo r rg ≤ gpaco_clo F clo r' rg' :=
-  Rel.le_trans (gpaco_clo_mon_r F clo rg hr) (gpaco_clo_mon_rg F clo r' hrg)
+    gpacoClo F clo r rg ≤ gpacoClo F clo r' rg' :=
+  Rel.le_trans (gpacoClo_mon_r F clo rg hr) (gpacoClo_mon_rg F clo r' hrg)
 
 /-!
-## GPaco_clo Coinduction Principle
+## gpacoClo Coinduction Principle
 
-The main coinduction principle: to prove gpaco_clo F clo r rg x y,
+The main coinduction principle: to prove gpacoClo F clo r rg x y,
 provide a relation R with R x y such that for any rr extending rg ⊔ R,
-we have R ⊆ gpaco_clo F clo r rr.
+we have R ⊆ gpacoClo F clo r rr.
 -/
 
-/-- Helper: rclo preserves containment in gpaco_clo -/
-theorem rclo_gpaco_clo_le (F : MonoRel α) (clo : Rel α → Rel α) (r rg rg' : Rel α)
+/-- Helper: rclo preserves containment in gpacoClo -/
+theorem rclo_gpacoClo_le (F : MonoRel α) (clo : Rel α → Rel α) (r rg rg' : Rel α)
     (hrg : rg ≤ rg') :
-    rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) ≤ gpaco_clo F clo r rg' := by
-  unfold gpaco_clo
+    rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) ≤ gpacoClo F clo r rg' := by
+  unfold gpacoClo
   apply rclo.mono
   apply sup_le_sup_right
   exact paco_mon (composeRclo F clo) (sup_le_sup_right hrg r)
 
-/-- Full coinduction principle for gpaco_clo (Coq's gpacoN_cofix).
+/-- Full coinduction principle for gpacoClo (Coq's gpacoN_cofix).
 
-To prove `l ≤ gpaco_clo F clo r rg`, show that for any `rr` with
-`rg ≤ rr` (INC) and `l ≤ rr` (CIH), we have `l ≤ gpaco_clo F clo r rr`.
+To prove `l ≤ gpacoClo F clo r rg`, show that for any `rr` with
+`rg ≤ rr` (INC) and `l ≤ rr` (CIH), we have `l ≤ gpacoClo F clo r rr`.
 
 The key insight (from Coq): First get `IN: l ≤ gpaco r (rg ⊔ l)` by instantiating
 OBG with rr = rg ⊔ l. Then use coinduction to collapse `paco P ((rg ⊔ l) ⊔ r)`
 back to `paco P (rg ⊔ r)`. The `l` elements get transformed via IN into the
 gpaco structure, which lands in `rclo clo (W ⊔ S)` for the coinductive witness. -/
-theorem gpaco_clo_coind (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
+theorem gpacoClo_coind (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
     (l : Rel α)
-    (OBG : ∀ rr, rg ≤ rr → l ≤ rr → l ≤ gpaco_clo F clo r rr) :
-    l ≤ gpaco_clo F clo r rg := by
-  have IN : l ≤ gpaco_clo F clo r (rg ⊔ l) := OBG (rg ⊔ l) le_sup_left le_sup_right
+    (OBG : ∀ rr, rg ≤ rr → l ≤ rr → l ≤ gpacoClo F clo r rr) :
+    l ≤ gpacoClo F clo r rg := by
+  have IN : l ≤ gpacoClo F clo r (rg ⊔ l) := OBG (rg ⊔ l) le_sup_left le_sup_right
   intro x y hlxy
   have hgpaco := IN x y hlxy
-  simp only [gpaco_clo_def] at hgpaco ⊢
+  simp only [gpacoClo_def] at hgpaco ⊢
   have h_inner : paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ r ≤
                  rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r) := by
     apply sup_le
@@ -158,7 +158,7 @@ theorem gpaco_clo_coind (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel �
         simp only [composeRclo_def] at h_unfold ⊢
         have h_rclo_le : rclo clo (upaco (composeRclo F clo) ((rg ⊔ l) ⊔ r)) ≤
                          rclo clo (paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ (rg ⊔ r)) := by
-          -- Use induction on rclo structure to handle l elements that become gpaco_clo
+          -- Use induction on rclo structure to handle l elements that become gpacoClo
           intro x' y' huprclo
           induction huprclo with
           | @base x' y' hbase =>
@@ -171,9 +171,9 @@ theorem gpaco_clo_coind (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel �
                 cases hrgl with
                 | inl hrg => exact rclo.base (Or.inr (Or.inl hrg))
                 | inr hl' =>
-                  -- l element: use IN to get gpaco_clo, then use rclo.mono
+                  -- l element: use IN to get gpacoClo, then use rclo.mono
                   have hIN := IN x' y' hl'
-                  simp only [gpaco_clo_def] at hIN
+                  simp only [gpacoClo_def] at hIN
                   -- hIN : rclo clo (paco P ((rg ⊔ l) ⊔ r) ⊔ r) x' y'
                   have h_r_le : paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ r ≤
                                 paco (composeRclo F clo) ((rg ⊔ l) ⊔ r) ⊔ (rg ⊔ r) :=
@@ -193,27 +193,27 @@ theorem gpaco_clo_coind (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel �
   -- Then rclo.rclo_rclo collapses the nested rclo
   exact rclo.rclo_rclo x y (rclo.mono h_inner x y hgpaco)
 
-/-- Pointwise coinduction for gpaco_clo.
+/-- Pointwise coinduction for gpacoClo.
 
-This is the pointwise version of `gpaco_clo_coind`, analogous to `paco_coind`.
+This is the pointwise version of `gpacoClo_coind`, analogous to `paco_coind`.
 It avoids needing to apply the resulting relation to `x y` manually. -/
-theorem gpaco_clo_coind' (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
+theorem gpacoClo_coind' (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
     (l : Rel α) {x y : α}
-    (OBG : ∀ rr, rg ≤ rr → l ≤ rr → l ≤ gpaco_clo F clo r rr)
-    (hxy : l x y) : gpaco_clo F clo r rg x y :=
-  (gpaco_clo_coind F clo r rg l OBG) x y hxy
+    (OBG : ∀ rr, rg ≤ rr → l ≤ rr → l ≤ gpacoClo F clo r rr)
+    (hxy : l x y) : gpacoClo F clo r rg x y :=
+  (gpacoClo_coind F clo r rg l OBG) x y hxy
 
-/-- Simple coinduction for gpaco_clo: prove via paco with F-progress.
+/-- Simple coinduction for gpacoClo: prove via paco with F-progress.
 
-To prove `gpaco_clo F clo r rg x y`, find R with R x y such that
+To prove `gpacoClo F clo r rg x y`, find R with R x y such that
 R ⊆ F (rclo clo (R ⊔ upaco (F ∘ rclo clo) (rg ⊔ r))) ⊔ r.
 
 Note: When R a b gives r a b (base case), no F-progress is needed. -/
-theorem gpaco_clo_cofix (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
+theorem gpacoClo_cofix (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α)
     (R : Rel α) {x y : α}
     (hR : R ≤ F (rclo clo (R ⊔ upaco (composeRclo F clo) (rg ⊔ r))) ⊔ r)
-    (hxy : R x y) : gpaco_clo F clo r rg x y := by
-  unfold gpaco_clo
+    (hxy : R x y) : gpacoClo F clo r rg x y := by
+  unfold gpacoClo
   apply rclo.base
   -- Either in paco part or r part
   cases hR x y hxy with
@@ -260,7 +260,7 @@ theorem gpaco_clo_cofix (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel �
 /-!
 ## Relationship to GPaco (without closure)
 
-When clo = id, gpaco_clo reduces to something equivalent to gpaco.
+When clo = id, gpacoClo reduces to something equivalent to gpaco.
 -/
 
 /-- With identity closure, composeRclo simplifies to F -/
@@ -272,42 +272,42 @@ theorem composeRclo_id (F : MonoRel α) : composeRclo F id = F := by
     funext R
     simp only [Function.comp_apply, rclo.rclo_id]
 
-/-- With identity closure, gpaco_clo simplifies to gpaco -/
-theorem gpaco_clo_id (F : MonoRel α) (r rg : Rel α) :
-    gpaco_clo F id r rg = paco F (rg ⊔ r) ⊔ r := by
-  simp only [gpaco_clo_def, rclo.rclo_id, composeRclo_id]
+/-- With identity closure, gpacoClo simplifies to gpaco -/
+theorem gpacoClo_id (F : MonoRel α) (r rg : Rel α) :
+    gpacoClo F id r rg = paco F (rg ⊔ r) ⊔ r := by
+  simp only [gpacoClo_def, rclo.rclo_id, composeRclo_id]
 
 /-!
-## Accumulation in GPaco_clo
+## Accumulation in gpacoClo
 -/
 
-/-- gupaco_clo absorbs into gpaco_clo (requires compatible monotone closure).
+/-- gupacoClo absorbs into gpacoClo (requires compatible monotone closure).
 
-This is a key accumulation lemma: facts proven via gupaco_clo can be accumulated
-back into gpaco_clo, enabling compositional proofs.
+This is a key accumulation lemma: facts proven via gupacoClo can be accumulated
+back into gpacoClo, enabling compositional proofs.
 
 Proof strategy: Direct induction on the source rclo structure.
 1. For base case (paco P G): use paco_mon since G ≤ rr ⊔ r
 2. For base case (G itself): use rclo.mono since G = gpaco r rg ≤ gpaco r rr (by rg ≤ rr)
 3. For clo case: gpaco r rr = rclo clo (...) is closed under clo via clo_rclo -/
-theorem gpaco_clo_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
+theorem gpacoClo_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
     (_h_mono : CloMono clo) (_h_compat : Compatible F clo)
     (r rg : Rel α) :
-    gupaco_clo F clo (gpaco_clo F clo r rg) ≤ gpaco_clo F clo r rg := by
+    gupacoClo F clo (gpacoClo F clo r rg) ≤ gpacoClo F clo r rg := by
   have _ := _h_mono
   have _ := _h_compat
-  let G := gpaco_clo F clo r rg
+  let G := gpacoClo F clo r rg
   let P := composeRclo F clo
   -- gupaco G = rclo clo (paco P (G ⊔ G) ⊔ G) = rclo clo (paco P G ⊔ G)
   -- gpaco r rg = rclo clo (paco P (rg ⊔ r) ⊔ r)
-  -- Use gpaco_clo_coind to prove gupaco G ≤ gpaco r rg
-  apply gpaco_clo_coind F clo r rg (gupaco_clo F clo G)
+  -- Use gpacoClo_coind to prove gupaco G ≤ gpaco r rg
+  apply gpacoClo_coind F clo r rg (gupacoClo F clo G)
   intro rr INC CIH
   -- INC : rg ≤ rr
   -- CIH : gupaco G ≤ rr (i.e., rclo clo (paco P G ⊔ G) ≤ rr)
   -- Goal: gupaco G ≤ gpaco r rr (i.e., rclo clo (paco P G ⊔ G) ≤ rclo clo (paco P (rr ⊔ r) ⊔ r))
   -- Direct induction on source rclo structure
-  simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+  simp only [gupacoClo_def, gpacoClo_def, sup_idem]
   intro x y hgup
   induction hgup with
   | @base x y hbase =>
@@ -317,8 +317,8 @@ theorem gpaco_clo_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
       -- From CIH: paco P G ≤ gupaco G ≤ rr, so G ≤ rr (since G ≤ gupaco G)
       have h_G_le_rr : G ≤ rr := by
         intro a b hG
-        have h1 : gupaco_clo F clo G a b := by
-          simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+        have h1 : gupacoClo F clo G a b := by
+          simp only [gupacoClo_def, gpacoClo_def, sup_idem]
           exact rclo.base (Or.inr hG)
         exact CIH a b h1
       -- G ≤ rr implies G ≤ rr ⊔ r, so paco P G ≤ paco P (rr ⊔ r)
@@ -326,7 +326,7 @@ theorem gpaco_clo_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
       have hpaco' := paco_mon P hG_le_rr_r x y hpaco
       exact rclo.base (Or.inl hpaco')
     | inr hG =>
-      -- hG : G x y = gpaco_clo F clo r rg x y
+      -- hG : G x y = gpacoClo F clo r rg x y
       -- Goal: rclo clo (paco P (rr ⊔ r) ⊔ r) x y
       -- G = rclo clo (paco P (rg ⊔ r) ⊔ r)
       -- Since rg ≤ rr (INC), we have rg ⊔ r ≤ rr ⊔ r
@@ -349,11 +349,11 @@ This is the crucial property that allows building up gpaco proofs incrementally.
 When you have a gpaco predicate and use it as the accumulator for gupaco,
 the result is still contained in the original gpaco.
 
-Note: This requires `clo` to be compatible and monotone. See `gpaco_clo_gupaco` for the proof. -/
+Note: This requires `clo` to be compatible and monotone. See `gpacoClo_gupaco` for the proof. -/
 theorem gpaco_gupaco (F : MonoRel α) (clo : Rel α → Rel α)
     (h_mono : CloMono clo) (h_compat : Compatible F clo)
     (r rg : Rel α) :
-    gupaco_clo F clo (gpaco_clo F clo r rg) ≤ gpaco_clo F clo r rg :=
-  gpaco_clo_gupaco F clo h_mono h_compat r rg
+    gupacoClo F clo (gpacoClo F clo r rg) ≤ gpacoClo F clo r rg :=
+  gpacoClo_gupaco F clo h_mono h_compat r rg
 
 end Paco

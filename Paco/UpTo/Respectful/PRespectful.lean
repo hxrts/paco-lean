@@ -110,8 +110,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
     cases x <;> cases y
     · -- inl/inl
       rename_i a b
-      have hproj : projLeft (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
-        simpa using h
+      have hproj : projLeft (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := h
       have h' : prespectClosure F clo R a b := by
         simpa [projLeft_prespectClosure, projLeft_taggedUnion] using hproj
       simpa [taggedUnion, tagLeft, tagRight] using h'
@@ -131,8 +130,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
       exact (hclosed.2 _ _ h).elim
     · -- inr/inr
       rename_i a b
-      have hproj : projRight (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
-        simpa using h
+      have hproj : projRight (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := h
       have h' : prespectClosure F clo S a b := by
         simpa [projRight_prespectClosure, projRight_taggedUnion] using hproj
       simpa [taggedUnion, tagLeft, tagRight] using h'
@@ -144,7 +142,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
         simpa [taggedUnion, tagLeft, tagRight] using h
       have hproj : projLeft (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
         simpa [projLeft_prespectClosure, projLeft_taggedUnion] using h'
-      simpa using hproj
+      exact hproj
     · -- inl/inr
       cases h with
       | inl hL => cases hL
@@ -159,7 +157,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
         simpa [taggedUnion, tagLeft, tagRight] using h
       have hproj : projRight (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
         simpa [projRight_prespectClosure, projRight_taggedUnion] using h'
-      simpa using hproj
+      exact hproj
 
 /-- prespectClosure on a tag-closed relation splits by tag. --/
 
@@ -384,14 +382,14 @@ theorem prespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
     [ExtCompatImpliesCompat F] : ∀ R, clo R ≤ companion F R :=
   compatible'_le_companion F h.mon h_compat'
 
-/-- Paco respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
+/-- Paco respectfulness uclo lemma: clo R ≤ gupacoClo F (companion F) R -/
 theorem prespect_uclo (F : MonoRel α) {clo : Rel α → Rel α}
     (h : PRespectful F clo) (h_compat' : Compatible' F clo)
     [ExtCompatImpliesCompat F] (R : Rel α) :
-    clo R ≤ gupaco_clo F (companion F) R := by
+    clo R ≤ gupacoClo F (companion F) R := by
   intro x y hclo
   have h1 : clo R ≤ companion F R := prespect_companion F h h_compat' R
-  have h2 : companion F R = gupaco_clo F (companion F) R := (companion_gupaco_eq F R).symm
+  have h2 : companion F R = gupacoClo F (companion F) R := (companion_gupaco_eq F R).symm
   rw [← h2]
   exact h1 x y hclo
 

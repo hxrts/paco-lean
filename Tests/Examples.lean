@@ -558,9 +558,9 @@ def FStreamF (α : Type*) : MonoRel (FStream α) :=
     exact And.intro h.1 (hRS _ _ h.2)
   ⟩
 
-/-- Reflexive bisimulation using `reflClosure` with `gupaco_clo`. -/
+/-- Reflexive bisimulation using `reflClosure` with `gupacoClo`. -/
 theorem fstream_bisim_refl (α : Type*) (s : FStream α) :
-    gupaco_clo (FStreamF α) reflClosure ⊥ s s := by
+    gupacoClo (FStreamF α) reflClosure ⊥ s s := by
   apply upto_coind_bot (F := FStreamF α) (clo := reflClosure) (R := fun a b => a = b)
   · rfl
   · intro a b hab
@@ -617,8 +617,8 @@ local instance tagRoundtrip_bot_id {α : Type*} : TagRoundtrip (BotF α) idClosu
 local instance prespectRightGuarded_bot_id {α : Type*} : PrespectRightGuarded (BotF α) idClosure :=
   ⟨by
     intro R x y h
-    exact False.elim (by
-      simpa [prespectClosure_bot_id] using h)
+    rw [prespectClosure_bot_id] at h
+    exact False.elim h
   ⟩
 
 /-- A concrete use of `TagRoundtrip` to obtain compatibility. -/

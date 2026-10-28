@@ -184,7 +184,7 @@ Qed.
 ```
 -/
 
-/-- PrefixC is contained in gupaco_clo for any compatible monotone closure.
+/-- PrefixC is contained in gupacoClo for any compatible monotone closure.
 
 This shows that PrefixC is a valid up-to technique for proving sim.
 The proof coinducts on the outer sim relation (s0, t0).
@@ -197,7 +197,7 @@ These ensure that applying the closure preserves the SimStep structure.
 -/
 theorem prefixC_spec (clo : Rel Stream → Rel Stream)
     (h_mono : CloMono clo) (h_compat : Compatible SimF clo) :
-    ∀ x y, PrefixC (gupaco_clo SimF clo ⊥) x y → gupaco_clo SimF clo ⊥ x y := by
+    ∀ x y, PrefixC (gupacoClo SimF clo ⊥) x y → gupacoClo SimF clo ⊥ x y := by
   intro x y hpre
   -- Destruct the PrefixC structure
   obtain ⟨s0, s1, t0, t1, hsim, hR⟩ := hpre
@@ -211,13 +211,13 @@ theorem prefixC_spec (clo : Rel Stream → Rel Stream)
     -- s0 = t0 = snil, so concat reduces to s1, t1
     -- snil ++ s1 = s1, snil ++ t1 = t1
     simp only [concat_snil]
-    -- We have hR : gupaco_clo SimF clo ⊥ s1 t1
+    -- We have hR : gupacoClo SimF clo ⊥ s1 t1
     exact hR
   | sim_cons n sl sr hrel =>
     -- s0 = scons n sl, t0 = scons n sr with (paco ⊔ ⊥) sl sr
     simp only [concat_scons]
-    -- Goal: gupaco_clo SimF clo ⊥ (scons n (sl ++ s1)) (scons n (sr ++ t1))
-    simp only [gupaco_clo_def, gpaco_clo_def, sup_idem]
+    -- Goal: gupacoClo SimF clo ⊥ (scons n (sl ++ s1)) (scons n (sr ++ t1))
+    simp only [gupacoClo_def, gpacoClo_def, sup_idem]
     apply rclo.base
     left
     apply paco_fold
@@ -229,9 +229,9 @@ theorem prefixC_spec (clo : Rel Stream → Rel Stream)
       -- Use the extended witness with both concat and direct forms
       let W : Rel Stream := fun a b =>
         (∃ u0 u1 v0 v1, a = u0 ++ u1 ∧ b = v0 ++ v1 ∧
-                        sim u0 v0 ∧ gupaco_clo SimF clo ⊥ u1 v1) ∨
+                        sim u0 v0 ∧ gupacoClo SimF clo ⊥ u1 v1) ∨
         (∃ u1 v1, a = snil ++ u1 ∧ b = snil ++ v1 ∧
-                  gupaco_clo SimF clo ⊥ u1 v1)
+                  gupacoClo SimF clo ⊥ u1 v1)
       apply paco_coind (composeRclo SimF clo) W ⊥
       · intro a b hW
         cases hW with
@@ -245,9 +245,9 @@ theorem prefixC_spec (clo : Rel Stream → Rel Stream)
           | sim_nil =>
             simp only [concat_snil, composeRclo_def]
             -- Need: SimStep (rclo clo W) u1 v1
-            -- We have hgup : gupaco_clo SimF clo ⊥ u1 v1
+            -- We have hgup : gupacoClo SimF clo ⊥ u1 v1
             -- gupaco = rclo clo (paco (composeRclo SimF clo) ⊥)
-            simp only [gupaco_clo_def, gpaco_clo_def, sup_idem, Rel.sup_bot] at hgup
+            simp only [gupacoClo_def, gpacoClo_def, sup_idem, Rel.sup_bot] at hgup
             -- hgup : rclo clo (paco P ⊥) u1 v1
             -- We need to extract SimStep from this rclo structure
             -- The rclo gives us either base (paco) or clo (rclo)
@@ -273,7 +273,7 @@ theorem prefixC_spec (clo : Rel Stream → Rel Stream)
           simp only [concat_snil] at ha hb
           subst ha hb
           simp only [composeRclo_def]
-          simp only [gupaco_clo_def, gpaco_clo_def, sup_idem, Rel.sup_bot] at hgup
+          simp only [gupacoClo_def, gpacoClo_def, sup_idem, Rel.sup_bot] at hgup
           induction hgup with
           | base hp =>
             have hunf := paco_unfold (composeRclo SimF clo) ⊥ u1 v1 hp

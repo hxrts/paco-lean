@@ -3,7 +3,7 @@ import Paco
 /-!
 # GPaco with Closure Tests
 
-Tests for gpaco_clo and up-to techniques.
+Tests for gpacoClo and up-to techniques.
 -/
 
 namespace Paco.Tests.GPacoClo
@@ -22,24 +22,24 @@ def TestF : MonoRel α :=
   ⟩
 
 /-!
-## gpaco_clo basic tests
+## gpacoClo basic tests
 -/
 
-/-- r injects into gpaco_clo -/
-theorem test_r_le_gpaco_clo (r rg : Rel α) (x y : α) (hr : r x y) :
-    gpaco_clo (TestF α) id r rg x y :=
-  r_le_gpaco_clo (TestF α) id r rg x y hr
+/-- r injects into gpacoClo -/
+theorem test_r_le_gpacoClo (r rg : Rel α) (x y : α) (hr : r x y) :
+    gpacoClo (TestF α) id r rg x y :=
+  r_le_gpacoClo (TestF α) id r rg x y hr
 
-/-- Identity closure reduces gpaco_clo to standard form -/
-theorem test_gpaco_clo_id (r rg : Rel α) :
-    gpaco_clo (TestF α) id r rg = paco (TestF α) (rg ⊔ r) ⊔ r :=
-  gpaco_clo_id (TestF α) r rg
+/-- Identity closure reduces gpacoClo to standard form -/
+theorem test_gpacoClo_id (r rg : Rel α) :
+    gpacoClo (TestF α) id r rg = paco (TestF α) (rg ⊔ r) ⊔ r :=
+  gpacoClo_id (TestF α) r rg
 
-/-- paco injects into gpaco_clo -/
-theorem test_paco_le_gpaco_clo (r rg : Rel α) (x y : α)
+/-- paco injects into gpacoClo -/
+theorem test_paco_le_gpacoClo (r rg : Rel α) (x y : α)
     (h : paco (composeRclo (TestF α) id) (rg ⊔ r) x y) :
-    gpaco_clo (TestF α) id r rg x y :=
-  paco_le_gpaco_clo (TestF α) id r rg x y h
+    gpacoClo (TestF α) id r rg x y :=
+  paco_le_gpacoClo (TestF α) id r rg x y h
 
 /-!
 ## Companion tests
@@ -59,46 +59,46 @@ theorem test_companion_mono : Monotone2 (companion (TestF α)) :=
 
 /-- Companion absorbs gupaco -/
 theorem test_companion_gupaco (R : Rel α) :
-    gupaco_clo (TestF α) (companion (TestF α)) R ≤ companion (TestF α) R :=
+    gupacoClo (TestF α) (companion (TestF α)) R ≤ companion (TestF α) R :=
   companion_gupaco (TestF α) R
 
 /-- Companion gupaco equality -/
 theorem test_companion_gupaco_eq (R : Rel α) :
-    gupaco_clo (TestF α) (companion (TestF α)) R = companion (TestF α) R :=
+    gupacoClo (TestF α) (companion (TestF α)) R = companion (TestF α) R :=
   companion_gupaco_eq (TestF α) R
 
 /-!
 ## Monotonicity tests
 -/
 
-/-- gpaco_clo is monotone in r -/
-theorem test_gpaco_clo_mon_r (clo : Rel α → Rel α) (rg : Rel α)
+/-- gpacoClo is monotone in r -/
+theorem test_gpacoClo_mon_r (clo : Rel α → Rel α) (rg : Rel α)
     {r r' : Rel α} (hr : r ≤ r') :
-    gpaco_clo (TestF α) clo r rg ≤ gpaco_clo (TestF α) clo r' rg :=
-  gpaco_clo_mon_r (TestF α) clo rg hr
+    gpacoClo (TestF α) clo r rg ≤ gpacoClo (TestF α) clo r' rg :=
+  gpacoClo_mon_r (TestF α) clo rg hr
 
-/-- gpaco_clo is monotone in rg -/
-theorem test_gpaco_clo_mon_rg (clo : Rel α → Rel α) (r : Rel α)
+/-- gpacoClo is monotone in rg -/
+theorem test_gpacoClo_mon_rg (clo : Rel α → Rel α) (r : Rel α)
     {rg rg' : Rel α} (hrg : rg ≤ rg') :
-    gpaco_clo (TestF α) clo r rg ≤ gpaco_clo (TestF α) clo r rg' :=
-  gpaco_clo_mon_rg (TestF α) clo r hrg
+    gpacoClo (TestF α) clo r rg ≤ gpacoClo (TestF α) clo r rg' :=
+  gpacoClo_mon_rg (TestF α) clo r hrg
 
 /-!
 ## Coinduction principle tests
 -/
 
-/-- Test gpaco_clo_cofix: direct coinduction -/
-theorem test_gpaco_clo_cofix (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := by
-  apply gpaco_clo_cofix (TestF α) id ⊥ ⊥ (fun a b => a = b)
+/-- Test gpacoClo_cofix: direct coinduction -/
+theorem test_gpacoClo_cofix (x : α) : gpacoClo (TestF α) id ⊥ ⊥ x x := by
+  apply gpacoClo_cofix (TestF α) id ⊥ ⊥ (fun a b => a = b)
   · intro a b heq
     left
     simp only [rclo.rclo_id, Rel.sup_bot]
     left; subst heq; rfl
   · rfl
 
-/-- Test gpaco_clo_coind: general coinduction principle -/
-theorem test_gpaco_clo_coind (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := by
-  apply gpaco_clo_coind (TestF α) id ⊥ ⊥ (fun a b => a = b)
+/-- Test gpacoClo_coind: general coinduction principle -/
+theorem test_gpacoClo_coind (x : α) : gpacoClo (TestF α) id ⊥ ⊥ x x := by
+  apply gpacoClo_coind (TestF α) id ⊥ ⊥ (fun a b => a = b)
   intro rr _INC _CIH
   intro a b heq
   apply rclo.base
@@ -110,9 +110,9 @@ theorem test_gpaco_clo_coind (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := b
   · exact heq
   · rfl
 
-/-- Test gpaco_clo_coind': pointwise coinduction principle -/
-theorem test_gpaco_clo_coind' (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := by
-  apply gpaco_clo_coind' (TestF α) id ⊥ ⊥ (fun a b => a = b)
+/-- Test gpacoClo_coind': pointwise coinduction principle -/
+theorem test_gpacoClo_coind' (x : α) : gpacoClo (TestF α) id ⊥ ⊥ x x := by
+  apply gpacoClo_coind' (TestF α) id ⊥ ⊥ (fun a b => a = b)
   · intro rr _INC _CIH a b heq
     apply rclo.base
     left
@@ -123,10 +123,10 @@ theorem test_gpaco_clo_coind' (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := 
     · exact heq
   · rfl
 
-/-- Test that gpaco_clo_coind' produces the expected coinduction goal -/
-theorem test_gpaco_clo_coind'_goal (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := by
+/-- Test that gpacoClo_coind' produces the expected coinduction goal -/
+theorem test_gpacoClo_coind'_goal (x : α) : gpacoClo (TestF α) id ⊥ ⊥ x x := by
   -- The witness relation is equality
-  refine gpaco_clo_coind' (TestF α) id ⊥ ⊥ (fun a b => a = b) ?OBG ?hxy
+  refine gpacoClo_coind' (TestF α) id ⊥ ⊥ (fun a b => a = b) ?OBG ?hxy
   case OBG =>
     intro rr _INC _CIH a b heq
     apply rclo.base

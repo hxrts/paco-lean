@@ -6,6 +6,7 @@ import Paco.Tactic
 import Paco.UpTo
 import Paco.Coind
 import Paco.Simp
+import Paco.Deprecated
 
 /-!
 # Parametrized Coinduction (Paco)
