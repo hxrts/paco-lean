@@ -64,11 +64,11 @@ theorem companion_greatest (F : MonoRel α) {clo : Rel α → Rel α} {R : Rel �
   cpn.greatest (F := F) (R := R) h_mono h_compat
 
 theorem companion_gupaco (F : MonoRel α) (R : Rel α) :
-    gupaco_clo F (companion F) R ≤ companion F R := by
+    gupacoClo F (companion F) R ≤ companion F R := by
   simpa [companion] using cpn.gupaco (F := F) (R := R)
 
 theorem companion_gupaco_eq (F : MonoRel α) (R : Rel α) :
-    gupaco_clo F (companion F) R = companion F R := by
+    gupacoClo F (companion F) R = companion F R := by
   simpa [companion] using cpn.gupaco_eq (F := F) (R := R)
 
 

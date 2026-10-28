@@ -95,7 +95,7 @@ theorem gcoind' {F : MonoRel α} {r g : Rel α}
   fun _ _ hxy => gpaco_coind F R r g step hxy
 
 /-!
-## Up-To Coinduction (gpaco_clo)
+## Up-To Coinduction (gpacoClo)
 -/
 
 /-- Up-to coinduction with closure operator.
@@ -106,7 +106,7 @@ generating function.
 
 **Usage:**
 ```lean
-theorem my_bisim : gpaco_clo F clo r rg x y := by
+theorem my_bisim : gpacoClo F clo r rg x y := by
   apply upto_coind (R := fun a b => ...)
   · -- prove R x y
   · -- prove R ≤ F (rclo clo (R ⊔ upaco (F ∘ rclo clo) (rg ⊔ r))) ⊔ r
@@ -116,8 +116,8 @@ theorem upto_coind {F : MonoRel α} {clo : Rel α → Rel α} {r rg : Rel α} {x
     (R : Rel α)
     (witness : R x y)
     (step : R ≤ F (rclo clo (R ⊔ upaco (composeRclo F clo) (rg ⊔ r))) ⊔ r) :
-    gpaco_clo F clo r rg x y :=
-  gpaco_clo_cofix F clo r rg R step witness
+    gpacoClo F clo r rg x y :=
+  gpacoClo_cofix F clo r rg R step witness
 
 /-- Up-to coinduction with companion (canonical choice).
 
@@ -126,7 +126,7 @@ compatible monotone closure and works with any monotone F.
 
 **Usage:**
 ```lean
-theorem my_bisim : gpaco_clo F (companion F) r rg x y := by
+theorem my_bisim : gpacoClo F (companion F) r rg x y := by
   apply companion_coind (R := fun a b => ...)
   · -- prove R x y
   · -- prove R ≤ F (rclo (companion F) (R ⊔ upaco ... (rg ⊔ r))) ⊔ r
@@ -136,7 +136,7 @@ theorem companion_coind {F : MonoRel α} {r rg : Rel α} {x y : α}
     (R : Rel α)
     (witness : R x y)
     (step : R ≤ F (rclo (companion F) (R ⊔ upaco (composeRclo F (companion F)) (rg ⊔ r))) ⊔ r) :
-    gpaco_clo F (companion F) r rg x y :=
+    gpacoClo F (companion F) r rg x y :=
   upto_coind R witness step
 
 /-!
@@ -145,14 +145,14 @@ theorem companion_coind {F : MonoRel α} {r rg : Rel α} {x y : α}
 When the accumulator and guard are both ⊥.
 -/
 
-/-- Up-to coinduction for `gupaco_clo F clo ⊥`.
+/-- Up-to coinduction for `gupacoClo F clo ⊥`.
 
 Simplified interface when no accumulator or guard is needed. -/
 theorem upto_coind_bot {F : MonoRel α} {clo : Rel α → Rel α} {x y : α}
     (R : Rel α)
     (witness : R x y)
     (step : R ≤ F (rclo clo (R ⊔ upaco (composeRclo F clo) ⊥))) :
-    gupaco_clo F clo ⊥ x y := by
+    gupacoClo F clo ⊥ x y := by
   apply upto_coind R witness
   intro a b hab
   left
@@ -165,7 +165,7 @@ theorem companion_coind_bot {F : MonoRel α} {x y : α}
     (R : Rel α)
     (witness : R x y)
     (step : R ≤ F (rclo (companion F) (R ⊔ upaco (composeRclo F (companion F)) ⊥))) :
-    gupaco_clo F (companion F) ⊥ x y :=
+    gupacoClo F (companion F) ⊥ x y :=
   upto_coind_bot R witness step
 
 end Paco

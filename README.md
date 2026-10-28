@@ -28,7 +28,7 @@ The library is organized into core modules and up-to technique modules. See [Arc
 - `Paco.GPaco`: Generalized paco with guarded parameters (`gpaco`, `gupaco`)
 - `Paco.Tactic`: Tactics for ergonomic proofs (`pfold`, `punfold`, `pstep`, `pbase`, etc.)
 - `Paco.Coind`: Ergonomic coinduction wrappers (`coind`, `gcoind`, `upto_coind`)
-- `Paco.UpTo`: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpaco_clo`)
+- `Paco.UpTo`: Up-to techniques with closure operators (`rclo`, `Compatible`, `gpacoClo`)
 - `Paco.Companion`: Companion construction (greatest compatible closure)
 - `Paco.Compat`: Coq paco naming compatibility aliases
 - `Paco.Simp`: Additional simp lemmas
@@ -72,8 +72,8 @@ theorem my_property : Paco.paco MyF ⊥ x y := by
 | `paco_acc` | `paco F (paco F r) ≤ paco F r` (accumulation) |
 | `paco_coind` | Main coinduction principle |
 | `paco_bot` | `paco F ⊥ = gfp F` |
-| `gpaco_clo_coind` | Coinduction principle for gpaco with closures |
-| `gpaco_clo_gupaco` | Gupaco absorption into gpaco (accumulation) |
+| `gpacoClo_coind` | Coinduction principle for gpaco with closures |
+| `gpacoClo_gupaco` | Gupaco absorption into gpaco (accumulation) |
 | `cloMono_union` | Union of monotone closures is monotone |
 | `wcompat_union` | Union of weakly compatible closures is weakly compatible |
 | `prespect_compatible'_tagged` | `PRespectful` plus `TagRoundtrip` and `PrespectRightGuarded` yields `Compatible'` for `prespectClosure` |

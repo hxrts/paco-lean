@@ -382,14 +382,14 @@ theorem prespect_companion (F : MonoRel α) {clo : Rel α → Rel α}
     [ExtCompatImpliesCompat F] : ∀ R, clo R ≤ companion F R :=
   compatible'_le_companion F h.mon h_compat'
 
-/-- Paco respectfulness uclo lemma: clo R ≤ gupaco_clo F (companion F) R -/
+/-- Paco respectfulness uclo lemma: clo R ≤ gupacoClo F (companion F) R -/
 theorem prespect_uclo (F : MonoRel α) {clo : Rel α → Rel α}
     (h : PRespectful F clo) (h_compat' : Compatible' F clo)
     [ExtCompatImpliesCompat F] (R : Rel α) :
-    clo R ≤ gupaco_clo F (companion F) R := by
+    clo R ≤ gupacoClo F (companion F) R := by
   intro x y hclo
   have h1 : clo R ≤ companion F R := prespect_companion F h h_compat' R
-  have h2 : companion F R = gupaco_clo F (companion F) R := (companion_gupaco_eq F R).symm
+  have h2 : companion F R = gupacoClo F (companion F) R := (companion_gupaco_eq F R).symm
   rw [← h2]
   exact h1 x y hclo
 

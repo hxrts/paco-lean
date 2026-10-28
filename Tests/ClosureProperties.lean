@@ -84,14 +84,14 @@ theorem test_upaco_monotone (x y : α) (r s : Rel α) (hrs : r ≤ s)
 These test the new gpaco tactics: gbase, gfinal, gclo.
 -/
 
-/-- Test gbase: use base relation in gpaco_clo proof -/
+/-- Test gbase: use base relation in gpacoClo proof -/
 theorem test_gbase (x y : α) (hr : (fun a b => a = b) x y) :
-    gpaco_clo (TestF α) id (fun a b => a = b) ⊥ x y := by
+    gpacoClo (TestF α) id (fun a b => a = b) ⊥ x y := by
   gbase
   exact hr
 
 /-- Test gstep with rclo.base: take one step by applying F and rclo.base -/
-theorem test_gstep_pattern (x : α) : gpaco_clo (TestF α) id ⊥ ⊥ x x := by
+theorem test_gstep_pattern (x : α) : gpacoClo (TestF α) id ⊥ ⊥ x x := by
   gstep
   simp only [composeRclo_def, rclo.rclo_id]
   exact Or.inl rfl

@@ -137,29 +137,29 @@ The `base` constructor injects R into rclo. The `clo` constructor applies the cl
 
 ## GPaco with Closures
 
-The `gpaco_clo` definition integrates closures with gpaco.
+The `gpacoClo` definition integrates closures with gpaco.
 
 ```lean
-def gpaco_clo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) : Rel α :=
+def gpacoClo (F : MonoRel α) (clo : Rel α → Rel α) (r rg : Rel α) : Rel α :=
   rclo clo (paco (composeRclo F clo) (rg ⊔ r) ⊔ r)
 ```
 
 The generating function becomes `F ∘ rclo clo`. This composes F with the closure accumulator. The result is wrapped in `rclo clo` to allow closure at the top level.
 
-### Using gpaco_clo
+### Using gpacoClo
 
-The `gpaco_clo_cofix` theorem provides coinduction for gpaco_clo.
+The `gpacoClo_cofix` theorem provides coinduction for gpacoClo.
 
 ```lean
-theorem gpaco_clo_cofix (F : MonoRel α) (clo : Rel α → Rel α)
+theorem gpacoClo_cofix (F : MonoRel α) (clo : Rel α → Rel α)
     (r rg : Rel α) (R : Rel α)
     (step : R ≤ F (rclo clo (R ⊔ upaco (composeRclo F clo) (rg ⊔ r))) ⊔ r)
-    {x y : α} (hxy : R x y) : gpaco_clo F clo r rg x y
+    {x y : α} (hxy : R x y) : gpacoClo F clo r rg x y
 ```
 
 The step function receives `rclo clo (R ⊔ upaco (composeRclo F clo) (rg ⊔ r))` for recursive calls. This allows applying the closure during recursion.
 
-The library also provides `gpaco_clo_coind'` as a pointwise variant. This theorem applies the witness relation to the goal points directly. It avoids the need to manually apply the resulting relation to `x` and `y`.
+The library also provides `gpacoClo_coind'` as a pointwise variant. This theorem applies the witness relation to the goal points directly. It avoids the need to manually apply the resulting relation to `x` and `y`.
 
 ## The Companion
 
@@ -223,7 +223,7 @@ theorem companion_coind {F : MonoRel α} {r rg : Rel α} {x y : α}
     (R : Rel α)
     (witness : R x y)
     (step : R ≤ F (rclo (companion F) (R ⊔ upaco (composeRclo F (companion F)) (rg ⊔ r))) ⊔ r) :
-    gpaco_clo F (companion F) r rg x y
+    gpacoClo F (companion F) r rg x y
 ```
 
 Using the companion gives you the maximum up-to reasoning power available.

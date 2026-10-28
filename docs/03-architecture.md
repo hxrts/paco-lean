@@ -80,7 +80,7 @@ This module provides naming aliases for users familiar with the Coq paco library
 |--------------------|--------------------|---------------------------------|
 | `paco_mult`        | `paco_acc`         | `paco F (paco F r) ≤ paco F r`  |
 | `paco_mult_strong` | `paco_acc_upaco`   | `paco F (upaco F r) ≤ paco F r` |
-| `gpaco_mult`       | `gpaco_clo_gupaco` | Gupaco absorption               |
+| `gpaco_mult`       | `gpacoClo_gupaco` | Gupaco absorption               |
 
 ### Paco/Simp.lean
 
@@ -117,7 +117,7 @@ This module constructs the companion as a supremum over compatible monotone clos
 
 ### Paco/UpTo/GPacoClo.lean
 
-This module defines gpaco with user-provided closures. The `gpaco_clo F clo r rg` definition composes F with `rclo clo`. Key theorems include coinduction principles and accumulation.
+This module defines gpaco with user-provided closures. The `gpacoClo F clo r rg` definition composes F with `rclo clo`. Key theorems include coinduction principles and accumulation.
 
 ### Paco/UpTo/WCompat.lean
 

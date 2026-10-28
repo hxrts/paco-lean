@@ -104,7 +104,7 @@ def companion (F : MonoRel α) : Rel α → Rel α :=
 
 The companion subsumes all other compatible closures. If a closure `clo` is compatible with F, then `clo R ≤ companion F R` for all R. This makes the companion a universal choice.
 
-The companion satisfies three key properties. It is extensive, meaning `R ≤ companion F R`. It is compatible with F. It absorbs gupaco, meaning `gupaco_clo F (companion F) R ≤ companion F R`.
+The companion satisfies three key properties. It is extensive, meaning `R ≤ companion F R`. It is compatible with F. It absorbs gupaco, meaning `gupacoClo F (companion F) R ≤ companion F R`.
 
 In practice, the companion is useful when you do not know which specific closure to use. By choosing the companion, you get the maximum up-to reasoning power without committing to a particular closure.
 

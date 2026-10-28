@@ -13,7 +13,7 @@ The aliases map Coq names to their Lean equivalents.
 |--------------------|--------------------|---------------------------------|
 | `paco_mult`        | `paco_acc`         | `paco F (paco F r) ≤ paco F r`  |
 | `paco_mult_strong` | `paco_acc_upaco`   | `paco F (upaco F r) ≤ paco F r` |
-| `gpaco_mult`       | `gpaco_clo_gupaco` | Gupaco absorption               |
+| `gpaco_mult`       | `gpacoClo_gupaco` | Gupaco absorption               |
 
 ## References
 
@@ -49,14 +49,14 @@ theorem paco_mult_strong (F : MonoRel α) (r : Rel α) :
 ## GPaco Mult Lemmas
 -/
 
-/-- Alias for `gpaco_clo_gupaco` (Coq: `gpaco_gupaco`).
+/-- Alias for `gpacoClo_gupaco` (Coq: `gpaco_gupaco`).
 
-Absorbs gupaco_clo in the first parameter of gpaco_clo. -/
-theorem gpaco_clo_mult (F : MonoRel α) (clo : Rel α → Rel α)
+Absorbs gupacoClo in the first parameter of gpacoClo. -/
+theorem gpacoClo_mult (F : MonoRel α) (clo : Rel α → Rel α)
     (h_mono : CloMono clo) (h_compat : Compatible F clo)
     (r rg : Rel α) :
-    gupaco_clo F clo (gpaco_clo F clo r rg) ≤ gpaco_clo F clo r rg :=
-  gpaco_clo_gupaco F clo h_mono h_compat r rg
+    gupacoClo F clo (gpacoClo F clo r rg) ≤ gpacoClo F clo r rg :=
+  gpacoClo_gupaco F clo h_mono h_compat r rg
 
 /-!
 ## Unfold/Fold Aliases

@@ -558,9 +558,9 @@ def FStreamF (α : Type*) : MonoRel (FStream α) :=
     exact And.intro h.1 (hRS _ _ h.2)
   ⟩
 
-/-- Reflexive bisimulation using `reflClosure` with `gupaco_clo`. -/
+/-- Reflexive bisimulation using `reflClosure` with `gupacoClo`. -/
 theorem fstream_bisim_refl (α : Type*) (s : FStream α) :
-    gupaco_clo (FStreamF α) reflClosure ⊥ s s := by
+    gupacoClo (FStreamF α) reflClosure ⊥ s s := by
   apply upto_coind_bot (F := FStreamF α) (clo := reflClosure) (R := fun a b => a = b)
   · rfl
   · intro a b hab

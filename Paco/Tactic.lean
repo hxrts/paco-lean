@@ -23,7 +23,7 @@ This module provides tactics for working with parametrized coinduction (paco).
 | `pdestruct h` | `h : paco F r x y` | Unfold, destruct, clear bot |
 | `pinversion h` | `h : paco F r x y` | Like pdestruct, preserves original |
 | `pmonauto` | `⊢ Monotone2 F` | Auto-prove monotonicity |
-| `gcofix ih` | `⊢ gpaco_clo F clo r rg x y` | Start gpaco_clo coinduction |
+| `gcofix ih` | `⊢ gpacoClo F clo r rg x y` | Start gpacoClo coinduction |
 
 ## Typical Proof Structure
 
@@ -164,7 +164,7 @@ example : F (upaco F r) x y := by
 - `pfold`: the reverse operation
 - `punfold_reverse`: the hypothesis version
 -/
-macro "pfold_reverse" : tactic =>
+macro (name := pfoldReverse) "pfold_reverse" : tactic =>
   `(tactic| apply Paco.paco_unfold)
 
 /-- Unfold a gpaco hypothesis to expose structure.
@@ -404,7 +404,7 @@ example : paco F r a c := by
 ## Alias
 Also known as `pmult` in Coq paco.
 -/
-macro "paco_acc" : tactic =>
+macro (name := pacoAcc) "paco_acc" : tactic =>
   `(tactic| first
     | apply Paco.paco_acc
     | fail "paco_acc: expected goal `paco F (paco F r) x y`")
@@ -417,7 +417,7 @@ macro "paco_acc" : tactic =>
 ## Effect
 Converts goal to `⊢ paco F r x y`
 -/
-macro "paco_acc_upaco" : tactic =>
+macro (name := pacoAccUpaco) "paco_acc_upaco" : tactic =>
   `(tactic| first
     | apply Paco.paco_acc_upaco
     | fail "paco_acc_upaco: expected goal `paco F (upaco F r) x y`")
@@ -465,7 +465,7 @@ macro "upaco_mon" h:term : tactic =>
 /-!
 ## GPaco with Closures Tactics
 
-These tactics work with `gpaco_clo` and `gupaco_clo` for **up-to reasoning**.
+These tactics work with `gpacoClo` and `gupacoClo` for **up-to reasoning**.
 Up-to techniques allow more aggressive use of the coinductive hypothesis
 by reasoning "up to" some closure operator (e.g., reflexivity, transitivity).
 
@@ -473,7 +473,7 @@ by reasoning "up to" some closure operator (e.g., reflexivity, transitivity).
 
 ```lean
 theorem bisim_upto : paco Bisim ⊥ p q := by
-  ginit                    -- enter gpaco_clo with companion
+  ginit                    -- enter gpacoClo with companion
   gstep                    -- take F-step
   constructor
   · gclo                   -- apply closure (e.g., transitivity)
@@ -489,7 +489,7 @@ theorem bisim_upto : paco Bisim ⊥ p q := by
 `ginit` when goal is `⊢ paco F r x y`
 
 ## Effect
-Converts goal to `⊢ gupaco_clo F (companion F) r x y`
+Converts goal to `⊢ gupacoClo F (companion F) r x y`
 
 ## When to Use
 Use `ginit` to enter "up-to mode" where you can apply closure operators
@@ -510,20 +510,20 @@ example : paco Bisim ⊥ p q := by
 -/
 macro "ginit" : tactic =>
   `(tactic| first
-    | apply Paco.paco_le_gpaco_clo
+    | apply Paco.paco_le_gpacoClo
     | fail "ginit: expected goal `paco F r x y`")
 
 /-- Take one F-step in an up-to proof.
 
 ## Signature
-`gstep` when goal is `⊢ gpaco_clo F clo r rg x y`
+`gstep` when goal is `⊢ gpacoClo F clo r rg x y`
 
 ## Effect
-Converts goal to `⊢ F (gupaco_clo F clo r) x y`
+Converts goal to `⊢ F (gupacoClo F clo r) x y`
 
 ## When to Use
 After `ginit`, use `gstep` to make progress by providing the F-structure.
-The recursive positions get `gupaco_clo` which allows closure applications.
+The recursive positions get `gupacoClo` which allows closure applications.
 
 ## See Also
 - `gbase`: use the base relation instead of stepping
@@ -532,12 +532,12 @@ The recursive positions get `gupaco_clo` which allows closure applications.
 macro "gstep" : tactic =>
   `(tactic| first
     | (apply Paco.rclo.base; left; apply Paco.paco_fold)
-    | fail "gstep: expected goal `gpaco_clo F clo r rg x y`")
+    | fail "gstep: expected goal `gpacoClo F clo r rg x y`")
 
 /-- Use the base relation in an up-to proof.
 
 ## Signature
-`gbase` when goal is `⊢ gpaco_clo F clo r rg x y`
+`gbase` when goal is `⊢ gpacoClo F clo r rg x y`
 
 ## Effect
 Converts goal to `⊢ r x y`
@@ -547,25 +547,25 @@ For base cases where you have `r x y` directly.
 -/
 macro "gbase" : tactic =>
   `(tactic| first
-    | apply Paco.r_le_gpaco_clo
-    | fail "gbase: expected goal `gpaco_clo F clo r rg x y`")
+    | apply Paco.r_le_gpacoClo
+    | fail "gbase: expected goal `gpacoClo F clo r rg x y`")
 
 /-- Conclude an up-to proof by reducing to standard paco.
 
 ## Signature
-`gfinal` when goal is `⊢ gpaco_clo F clo r rg x y`
+`gfinal` when goal is `⊢ gpacoClo F clo r rg x y`
 
 ## Effect
-Applies `gpaco_clo_final`, requiring the closure to be compatible with F.
+Applies `gpacoClo_final`, requiring the closure to be compatible with F.
 
 ## When to Use
 When you have a standard `paco F (r ⊔ rg) x y` and want to embed it
-into `gpaco_clo`.
+into `gpacoClo`.
 -/
 macro "gfinal" : tactic =>
   `(tactic| first
-    | apply Paco.gpaco_clo_final
-    | fail "gfinal: expected goal `gpaco_clo F clo r rg x y`. Make sure the closure is compatible.")
+    | apply Paco.gpacoClo_final
+    | fail "gfinal: expected goal `gpacoClo F clo r rg x y`. Make sure the closure is compatible.")
 
 /-- Apply the closure operator in an up-to proof.
 
@@ -578,7 +578,7 @@ Introduces a closure application, allowing you to use up-to reasoning.
 ## Example
 ```lean
 -- Using up-to transitivity
-example : gpaco_clo F transClo r rg x z := by
+example : gpacoClo F transClo r rg x z := by
   gclo  -- apply transitive closure
   · exact step1  -- x to y
   · exact step2  -- y to z
@@ -592,35 +592,35 @@ macro "gclo" : tactic =>
   `(tactic| apply Paco.rclo.clo)
 
 /-!
-## GPaco_clo Coinduction Tactics
+## gpacoClo Coinduction Tactics
 -/
 
-/-- Start a gpaco_clo coinduction proof with closure accumulation.
+/-- Start a gpacoClo coinduction proof with closure accumulation.
 
 ## Signature
-`gcofix ih` when goal is `⊢ gpaco_clo F clo r rg x y`
+`gcofix ih` when goal is `⊢ gpacoClo F clo r rg x y`
 
 ## Effect
-Applies the full coinduction principle for gpaco_clo (`gpaco_clo_coind`),
+Applies the full coinduction principle for gpacoClo (`gpacoClo_coind`),
 creating goals:
 1. **INC goal**: `⊢ rg ≤ rr` (the guard is contained in the extension)
 2. **CIH goal**: `⊢ R ≤ rr` (the witness is contained in the extension)
-3. **Step goal**: `⊢ R x y → gpaco_clo F clo r rr x y` with `ih : R a b`
+3. **Step goal**: `⊢ R x y → gpacoClo F clo r rr x y` with `ih : R a b`
 4. **Witness goal**: `⊢ R x y` (show the witness contains the target)
 
 The name `ih` is bound to the coinductive hypothesis in the step goal.
 
 ## Understanding the Principle
-To prove `l ≤ gpaco_clo F clo r rg`, we find a witness `R` such that
-for any `rr` extending both `rg` (INC) and `R` (CIH), we have `R ≤ gpaco_clo F clo r rr`.
+To prove `l ≤ gpacoClo F clo r rg`, we find a witness `R` such that
+for any `rr` extending both `rg` (INC) and `R` (CIH), we have `R ≤ gpacoClo F clo r rr`.
 
 ## Example
 ```lean
-theorem upTo_bisim : gpaco_clo Bisim transClo ⊥ ⊥ p q := by
+theorem upTo_bisim : gpacoClo Bisim transClo ⊥ ⊥ p q := by
   gcofix ih
   · -- Goal: R p q (witness membership)
     trivial
-  · -- Goal: R a b → gpaco_clo Bisim transClo ⊥ rr a b
+  · -- Goal: R a b → gpacoClo Bisim transClo ⊥ rr a b
     intro hR
     gstep  -- take F-step
     constructor
@@ -632,18 +632,18 @@ theorem upTo_bisim : gpaco_clo Bisim transClo ⊥ ⊥ p q := by
 ## See Also
 - `gpcofix`: for simpler gpaco without closure
 - `pcofix`: for basic paco
-- `ginit`, `gstep`, `gclo`: for working with gpaco_clo
+- `ginit`, `gstep`, `gclo`: for working with gpacoClo
 -/
 macro "gcofix" ih:ident : tactic =>
-  `(tactic| (apply Paco.gpaco_clo_coind' _ _ _ _ ?R; intro _rr _INC _CIH _ _ $ih))
+  `(tactic| (apply Paco.gpacoClo_coind' _ _ _ _ ?R; intro _rr _INC _CIH _ _ $ih))
 
-/-- Low-level gpaco_clo coinduction using the simpler cofix principle.
+/-- Low-level gpacoClo coinduction using the simpler cofix principle.
 
 ## Signature
-`gcofix' ih` when goal is `⊢ gpaco_clo F clo r rg x y`
+`gcofix' ih` when goal is `⊢ gpacoClo F clo r rg x y`
 
 ## Effect
-Applies `gpaco_clo_cofix` which requires:
+Applies `gpacoClo_cofix` which requires:
 - A witness relation R with R x y
 - Proof that R ≤ F (rclo clo (R ⊔ upaco (F ∘ rclo clo) (rg ⊔ r))) ⊔ r
 
@@ -653,7 +653,7 @@ This is more direct but less flexible than `gcofix`.
 - `gcofix`: for the full coinduction principle with closure accumulation
 -/
 macro "gcofix'" ih:ident : tactic =>
-  `(tactic| (apply Paco.gpaco_clo_cofix _ _ _ _ ?R _; intro _ _ $ih))
+  `(tactic| (apply Paco.gpacoClo_cofix _ _ _ _ ?R _; intro _ _ $ih))
 
 /-!
 ## Monotonicity Automation
