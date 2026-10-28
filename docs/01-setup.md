@@ -4,7 +4,7 @@ This guide covers installation and configuration of paco-lean.
 
 ## Prerequisites
 
-You need Lean 4.26.0 or later and the Lake build tool. See the [Lean 4 installation guide](https://lean-lang.org/lean4/doc/setup.html) for setup instructions.
+You need Lean 4.35.0 or later and the Lake build tool. See the [Lean 4 installation guide](https://lean-lang.org/lean4/doc/setup.html) for setup instructions.
 
 Alternatively, use the provided Nix flake. Run `nix develop` from the repository root to enter a development shell with the correct Lean version pre-configured.
 

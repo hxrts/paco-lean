@@ -110,8 +110,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
     cases x <;> cases y
     · -- inl/inl
       rename_i a b
-      have hproj : projLeft (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
-        simpa using h
+      have hproj : projLeft (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := h
       have h' : prespectClosure F clo R a b := by
         simpa [projLeft_prespectClosure, projLeft_taggedUnion] using hproj
       simpa [taggedUnion, tagLeft, tagRight] using h'
@@ -131,8 +130,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
       exact (hclosed.2 _ _ h).elim
     · -- inr/inr
       rename_i a b
-      have hproj : projRight (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
-        simpa using h
+      have hproj : projRight (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := h
       have h' : prespectClosure F clo S a b := by
         simpa [projRight_prespectClosure, projRight_taggedUnion] using hproj
       simpa [taggedUnion, tagLeft, tagRight] using h'
@@ -144,7 +142,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
         simpa [taggedUnion, tagLeft, tagRight] using h
       have hproj : projLeft (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
         simpa [projLeft_prespectClosure, projLeft_taggedUnion] using h'
-      simpa using hproj
+      exact hproj
     · -- inl/inr
       cases h with
       | inl hL => cases hL
@@ -159,7 +157,7 @@ theorem prespectClosure_taggedUnion (F : MonoRel α) (clo : Rel α → Rel α)
         simpa [taggedUnion, tagLeft, tagRight] using h
       have hproj : projRight (prespectClosure (tagMonoRel F) (tagClosure clo) (taggedUnion R S)) a b := by
         simpa [projRight_prespectClosure, projRight_taggedUnion] using h'
-      simpa using hproj
+      exact hproj
 
 /-- prespectClosure on a tag-closed relation splits by tag. --/
 

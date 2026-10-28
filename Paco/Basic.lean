@@ -78,13 +78,39 @@ def inter (R S : Rel α) : Rel α := fun x y => R x y ∧ S x y
 
 /-- Subset ordering on relations -/
 def le (R S : Rel α) : Prop := ∀ x y, R x y → S x y
+/-- Supremum of a set of relations -/
+protected def sSup (S : Set (Rel α)) : Rel α := fun x y => ∃ R ∈ S, R x y
 
-instance : Bot (Rel α) := ⟨bot⟩
-instance : Top (Rel α) := ⟨top⟩
-instance : Max (Rel α) := ⟨union⟩
-instance : Min (Rel α) := ⟨inter⟩
-instance : LE (Rel α) := ⟨le⟩
-instance : LT (Rel α) := ⟨fun R S => R ≤ S ∧ ¬S ≤ R⟩
+/-- Infimum of a set of relations -/
+protected def sInf (S : Set (Rel α)) : Rel α := fun x y => ∀ R ∈ S, R x y
+
+/-- Relations form a complete lattice -/
+instance instCompleteLattice : CompleteLattice (Rel α) where
+  sup := union
+  le := le
+  lt := fun R S => R ≤ S ∧ ¬S ≤ R
+  le_refl := fun _ _ _ h => h
+  le_trans := fun _ _ _ h₁ h₂ x y h => h₂ x y (h₁ x y h)
+  le_antisymm := fun _ _ hRS hSR => funext fun x => funext fun y => propext ⟨hRS x y, hSR x y⟩
+  le_sup_left := fun R S x y hR => Or.inl hR
+  le_sup_right := fun R S x y hS => Or.inr hS
+  sup_le := fun R S T hRT hST x y h => h.elim (hRT x y) (hST x y)
+  inf := inter
+  inf_le_left := fun R S x y ⟨hR, _⟩ => hR
+  inf_le_right := fun R S x y ⟨_, hS⟩ => hS
+  le_inf := fun R S T hRS hRT x y hR => ⟨hRS x y hR, hRT x y hR⟩
+  sSup := Rel.sSup
+  isLUB_sSup := fun _ =>
+    ⟨fun R hR x y hRxy => ⟨R, hR, hRxy⟩,
+     fun _ hb x y ⟨_, hT, hTxy⟩ => hb hT x y hTxy⟩
+  sInf := Rel.sInf
+  isGLB_sInf := fun _ =>
+    ⟨fun R hR _ _ hxy => hxy R hR,
+     fun _ hb x y hRxy _ hT => hb hT x y hRxy⟩
+  top := top
+  bot := bot
+  le_top := fun _ _ _ _ => trivial
+  bot_le := fun _ _ _ h => h.elim
 
 @[simp] theorem bot_apply (x y : α) : (⊥ : Rel α) x y ↔ False := Iff.rfl
 @[simp] theorem top_apply (x y : α) : (⊤ : Rel α) x y ↔ True := Iff.rfl
@@ -100,42 +126,6 @@ theorem le_trans {R S T : Rel α} (hRS : R ≤ S) (hST : S ≤ T) : R ≤ T :=
 
 theorem le_antisymm {R S : Rel α} (hRS : R ≤ S) (hSR : S ≤ R) : R = S :=
   funext fun x => funext fun y => propext ⟨hRS x y, hSR x y⟩
-
-/-- Supremum of a set of relations -/
-protected def sSup (S : Set (Rel α)) : Rel α := fun x y => ∃ R ∈ S, R x y
-
-/-- Infimum of a set of relations -/
-protected def sInf (S : Set (Rel α)) : Rel α := fun x y => ∀ R ∈ S, R x y
-
-instance : SupSet (Rel α) := ⟨Rel.sSup⟩
-instance : InfSet (Rel α) := ⟨Rel.sInf⟩
-
-/-- Relations form a complete lattice -/
-instance instCompleteLattice : CompleteLattice (Rel α) where
-  sup := union
-  le := le
-  lt := fun R S => R ≤ S ∧ ¬S ≤ R
-  le_refl := le_refl
-  le_trans := fun _ _ _ => le_trans
-  le_antisymm := fun _ _ => le_antisymm
-  le_sup_left := fun R S x y hR => Or.inl hR
-  le_sup_right := fun R S x y hS => Or.inr hS
-  sup_le := fun R S T hRT hST x y h => h.elim (hRT x y) (hST x y)
-  inf := inter
-  inf_le_left := fun R S x y ⟨hR, _⟩ => hR
-  inf_le_right := fun R S x y ⟨_, hS⟩ => hS
-  le_inf := fun R S T hRS hRT x y hR => ⟨hRS x y hR, hRT x y hR⟩
-  sSup := Rel.sSup
-  le_sSup := fun S R hR x y hRxy => ⟨R, hR, hRxy⟩
-  sSup_le := fun S R hSR x y ⟨T, hT, hTxy⟩ => hSR T hT x y hTxy
-  sInf := Rel.sInf
-  sInf_le := fun S R hR x y hxy => hxy R hR
-  le_sInf := fun S R hRS x y hRxy T hT => hRS T hT x y hRxy
-  top := top
-  bot := bot
-  le_top := fun _ _ _ _ => trivial
-  bot_le := fun _ _ _ h => h.elim
-
 
 /-- Helper: lift ≤ into the left side of ⊔. --/
 theorem sup_le_sup_left_rel {R S T : Rel α} (h : R ≤ S) : R ⊔ T ≤ S ⊔ T :=
